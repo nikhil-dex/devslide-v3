@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { withConsoleBridge } from "@/lib/sandboxDocument";
+import { readSandboxConsoleMessage } from "@/lib/sandboxMessages";
 
 // Slides are authored on a fixed 1920x1080 canvas. Rendering them in a
 // viewport-sized iframe crops them on smaller screens, so instead we render
@@ -40,9 +41,8 @@ export default function SandboxFrame({
       // the exact WindowProxy instead of trusting event.origin or message data.
       if (event.source !== iframeRef.current?.contentWindow) return;
 
-      const payload = event.data;
-      if (payload?.type !== "log" || !Array.isArray(payload.data)) return;
-      onConsoleMessage?.(payload.data);
+      const args = readSandboxConsoleMessage(event, iframeRef.current?.contentWindow);
+      if (args) onConsoleMessage?.(args);
     };
 
     window.addEventListener("message", handleMessage);
