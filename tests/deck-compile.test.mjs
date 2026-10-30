@@ -14,7 +14,9 @@ import steps from "../deck/components/steps.js";
 import table from "../deck/components/table.js";
 import callout from "../deck/components/callout.js";
 import image from "../deck/components/image.js";
-import netflix from "../deck/themes/netflix.js";
+import { getTheme } from "../deck/themes/index.js";
+
+const theme = getTheme("linear");
 
 const ALL_COMPONENTS = [
   hero, comparison, timeline, dashboard, quote,
@@ -40,7 +42,7 @@ const VALID_PROPS = {
 
 const validDeck = () => ({
   version: 1,
-  theme: "netflix",
+  theme: "linear",
   slides: [
     {
       component: "Hero",
@@ -118,7 +120,7 @@ test("prop values are HTML-escaped", () => {
 // ── Structured errors ───────────────────────────────────────────────
 
 test("an invalid deck returns the schema's structured errors", () => {
-  const result = compileDeck({ theme: "netflix", slides: [] });
+  const result = compileDeck({ theme: "linear", slides: [] });
   assert.equal(result.valid, false);
   assert.deepEqual(result.slides, []);
   assert.ok(result.errors.includes("Missing version"));
@@ -207,17 +209,17 @@ test("prop errors and unknown-component errors aggregate across slides", () => {
   ]);
 });
 
-// ── Part 4: the Netflix theme ───────────────────────────────────────
+// ── Part 4: theme token integration ─────────────────────────────────
 
 test("theme tokens are injected as a :root block before component CSS", () => {
   const html = compileDeck(validDeck()).slides[0];
   assert.ok(html.includes(":root {"), ":root block present");
-  assert.ok(html.includes(`--deck-bg: ${netflix.tokens.bg};`));
-  assert.ok(html.includes(`--deck-text: ${netflix.tokens.text};`));
-  assert.ok(html.includes(`--deck-muted: ${netflix.tokens.muted};`));
-  assert.ok(html.includes(`--deck-accent: ${netflix.tokens.accent};`));
-  assert.ok(html.includes(`--deck-font-display: ${netflix.tokens.fontDisplay};`));
-  assert.ok(html.includes(`--deck-font-body: ${netflix.tokens.fontBody};`));
+  assert.ok(html.includes(`--deck-bg: ${theme.colors.background};`));
+  assert.ok(html.includes(`--deck-text: ${theme.colors.textPrimary};`));
+  assert.ok(html.includes(`--deck-muted: ${theme.colors.textMuted};`));
+  assert.ok(html.includes(`--deck-accent: ${theme.colors.primary};`));
+  assert.ok(html.includes(`--deck-font-display: ${theme.typography.display.fontFamily};`));
+  assert.ok(html.includes(`--deck-font-body: ${theme.typography.body.fontFamily};`));
   assert.ok(
     html.indexOf(":root {") < html.indexOf(".hero {"),
     "tokens must be defined before component CSS consumes them"
@@ -227,13 +229,13 @@ test("theme tokens are injected as a :root block before component CSS", () => {
 test("hero renders differently under the theme: tokens defined AND consumed", () => {
   const html = compileDeck(validDeck()).slides[0];
   // definition (theme) and consumption (component) meet in one document
-  assert.ok(html.includes(`--deck-bg: ${netflix.tokens.bg}`), "theme defines the token");
+  assert.ok(html.includes(`--deck-bg: ${theme.colors.background}`), "theme defines the token");
   assert.ok(html.includes("var(--deck-bg"), "hero consumes the token");
   assert.ok(html.includes("var(--deck-accent"), "hero consumes the accent");
 });
 
 test("hero source contains no theme literals — themes reach it only via variables", () => {
-  for (const value of Object.values(netflix.tokens)) {
+  for (const value of [theme.colors.background, theme.colors.textPrimary, theme.colors.textMuted, theme.colors.primary]) {
     assert.ok(
       !hero.css.includes(value),
       `hero.css must not hardcode theme value "${value}"`
@@ -244,18 +246,18 @@ test("hero source contains no theme literals — themes reach it only via variab
 
 test("unknown theme is an immediate deck-level failure, not aggregated", () => {
   const deck = validDeck();
-  deck.theme = "apple";
+  deck.theme = "not-a-real-theme";
   // also break a slide — its error must NOT appear alongside the theme error
   deck.slides[0].props = {};
   const result = compileDeck(deck);
   assert.equal(result.valid, false);
-  assert.deepEqual(result.errors, ['Unknown theme "apple"']);
+  assert.deepEqual(result.errors, ['Unknown theme "not-a-real-theme"']);
   assert.deepEqual(result.slides, []);
 });
 
 test("theme lookup is case-insensitive", () => {
   const deck = validDeck();
-  deck.theme = "Netflix";
+  deck.theme = "LINEAR";
   assert.equal(compileDeck(deck).valid, true);
 });
 
@@ -360,7 +362,7 @@ test("every component compiles a full deck end to end", () => {
   for (const component of ALL_COMPONENTS) {
     const deck = {
       version: 1,
-      theme: "netflix",
+      theme: "linear",
       slides: [{ component: component.name, props: VALID_PROPS[component.name] }],
     };
     const result = compileDeck(deck);
@@ -368,7 +370,7 @@ test("every component compiles a full deck end to end", () => {
     const html = result.slides[0];
     assert.ok(html.startsWith("<!DOCTYPE html>"), `${component.name}: doctype`);
     assert.ok(html.includes("width: 1920px"), `${component.name}: canvas contract`);
-    assert.ok(html.includes(`--deck-bg: ${netflix.tokens.bg}`), `${component.name}: theme tokens injected`);
+    assert.ok(html.includes(`--deck-bg: ${theme.colors.background}`), `${component.name}: theme tokens injected`);
     assert.ok(html.includes(`data-component="${component.name}"`), `${component.name}: canvas annotation`);
   }
 });
