@@ -38,6 +38,9 @@ test("blocks non-global and special-purpose IPv6 addresses", () => {
     "::ffff:127.0.0.1",
     "2001:db8::1",
     "2001::1",
+    "2002:7f00:1::",
+    "64:ff9b::7f00:1",
+    "64:ff9b:1::7f00:1",
   ]) {
     assert.equal(isPrivateOrReservedAddress(address), true, address);
   }
