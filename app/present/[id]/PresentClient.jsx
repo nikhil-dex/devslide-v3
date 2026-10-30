@@ -100,14 +100,19 @@ export default function PresentClient() {
     const data =
       await response.json();
 
-    if (
-      data.authenticated
-    ) {
+    if (response.ok && data.authenticated && Array.isArray(data.slides)) {
+      setTitle(data.title || title);
+      setSlides(data.slides);
       setUnlocked(true);
+
+      const fromHash = parseInt(window.location.hash.slice(1), 10);
+      if (fromHash >= 1 && fromHash <= data.slides.length) {
+        setIndex(fromHash - 1);
+      } else {
+        setIndex(0);
+      }
     } else {
-      alert(
-        "Incorrect password."
-      );
+      alert(data.error || "Incorrect password.");
     }
 };
 
