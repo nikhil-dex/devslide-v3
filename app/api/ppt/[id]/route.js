@@ -28,14 +28,16 @@ export async function GET(req, { params }) {
     }
 
     const ppt = await Ppts.findById(id)
-      .select("userid titles ppt_History createdAt")
+      .select("userid sharedWith titles ppt_History createdAt")
       .lean();
     if (!ppt) {
       return Response.json({ error: "Presentation not found." }, { status: 404 });
     }
 
-    if (String(ppt.userid) !== String(user._id)) {
-      return Response.json({ error: "You can only view your own saved presentations." }, { status: 403 });
+    const isOwner = String(ppt.userid) === String(user._id);
+    const isRecipient = ppt.sharedWith?.includes(session.user.email.toLowerCase());
+    if (!isOwner && !isRecipient) {
+      return Response.json({ error: "You do not have access to this presentation." }, { status: 403 });
     }
 
     // Older documents stored slides wrapped in an extra array: [[slide, slide]]
