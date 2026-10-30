@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { withAutoFit } from "@/lib/slideAutofit";
+import { withConsoleBridge } from "@/lib/sandboxDocument";
 
 // Slides are authored on a fixed 1920x1080 canvas. Rendering them in a
 // viewport-sized iframe crops them on smaller screens, so instead we render
@@ -59,57 +59,7 @@ export default function SandboxFrame({
       {layout && layout.scale > 0 && (
         <iframe
         key={sandboxKey}
-                  srcDoc={`
-        <script>
-    const oldLog = console.log;
-    const oldError = console.error;
-
-    console.log = (...args) => {
-        parent.postMessage(
-            {
-                type: "log",
-                data: args,
-            },
-            "*"
-        );
-
-        oldLog(...args);
-    };
-
-    console.error = (...args) => {
-        parent.postMessage(
-            {
-                type: "log",
-                data: [
-                    "ERROR:",
-                    ...args,
-                ],
-            },
-            "*"
-        );
-
-        oldError(...args);
-    };
-
-    window.onerror = (
-        msg
-    ) => {
-        parent.postMessage(
-            {
-                type: "log",
-                data: [
-                    "RUNTIME:",
-                    msg,
-                ],
-            },
-            "*"
-        );
-    };
-</script>
-
-        
-        ${html}
-    `}
+                  srcDoc={withConsoleBridge(html)}
           sandbox="allow-scripts"
           loading="lazy"
           title={title}
