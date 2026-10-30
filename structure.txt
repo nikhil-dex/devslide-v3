@@ -1,0 +1,67 @@
+﻿              
++---app
+|   |   globals.css
+|   |   layout.tsx
+|   |   manifest.ts
+|   |   page.jsx
+|   |   
+|   +---(auth)
+|   |   \---signin
+|   |           page.jsx
+|   |           
+|   +---api
+|   |   +---auth
+|   |   |   \---[...nextauth]
+|   |   |           route.js
+|   |   |           
+|   |   +---edit-slide
+|   |   |       route.js
+|   |   |       
+|   |   +---generate-ppt
+|   |   |       route.js
+|   |   |       
+|   |   +---ppt
+|   |   |   \---[id]
+|   |   |       |   route.js
+|   |   |       |   
+|   |   |       +---duplicate
+|   |   |       |       route.js
+|   |   |       |       
+|   |   |       \---share
+|   |   |               route.js
+|   |   |               
+|   |   +---ppt_History
+|   |   |       route.js
+|   |   |       
+|   |   +---profile
+|   |   |       route.js
+|   |   |       
+|   |   \---save-ppt
+|   |           route.js
+|   |           
+|   +---code-ide
+|   |       page.jsx
+|   |       
+|   +---exportDetails
+|   |       page.jsx
+|   |       
+|   +---present
+|   |   \---[id]
+|   |           opengraph-image.jsx
+|   |           page.jsx
+|   |           PresentClient.jsx
+|   |           
+|   +---presentations
+|   |       page.jsx
+|   |       
+|   \---profile
+|           page.jsx
+|           
++---components
+|   |   AuroraBackground.jsx
+|   |   SlideFrame.jsx
+|   |   
+|   \---Header
+|           navbar.jsx
+|           
+
