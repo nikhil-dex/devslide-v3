@@ -48,7 +48,7 @@ export default function PresentationCard({
             src={presentation.src}
             title={`${presentation.title} — live cover`}
             loading="lazy"
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts"
             className="absolute inset-0 w-full h-full border-0 pointer-events-none"
             tabIndex={-1}
             aria-hidden
