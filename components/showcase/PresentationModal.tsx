@@ -90,7 +90,7 @@ export default function PresentationModal({
               <iframe
                 src={presentation.src}
                 title={presentation.title}
-                sandbox="allow-scripts allow-same-origin"
+                sandbox="allow-scripts"
                 className="w-full h-full border-0"
                 allow="fullscreen"
                 allowFullScreen
