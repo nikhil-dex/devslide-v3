@@ -64,9 +64,33 @@ test("DNS names resolving to loopback are blocked", async () => {
   assert.equal(await isBlockedResourceRequest("http://localhost/"), true);
 });
 
-test("public DNS names are allowed when all resolved addresses are public", async () => {
-  // Reserved example domains are intentionally not used: this test needs a
-  // real public DNS answer and is therefore an integration-level check.
-  const result = await isBlockedResourceRequest("https://example.com/");
-  assert.equal(result, false);
+test("DNS answers containing private addresses are blocked", async () => {
+  const privateDns = async () => [{ address: "127.0.0.1", family: 4 }];
+  const mixedDns = async () => [
+    { address: "8.8.8.8", family: 4 },
+    { address: "10.0.0.5", family: 4 },
+  ];
+
+  assert.equal(
+    await isBlockedResourceRequest("https://slides.example/image.png", privateDns),
+    true
+  );
+  assert.equal(
+    await isBlockedResourceRequest("https://slides.example/image.png", mixedDns),
+    true
+  );
+});
+
+test("public DNS answers are allowed and DNS failures are blocked", async () => {
+  const publicDns = async () => [{ address: "8.8.8.8", family: 4 }];
+  const failedDns = async () => { throw new Error("DNS unavailable"); };
+
+  assert.equal(
+    await isBlockedResourceRequest("https://slides.example/image.png", publicDns),
+    false
+  );
+  assert.equal(
+    await isBlockedResourceRequest("https://slides.example/image.png", failedDns),
+    true
+  );
 });
