@@ -34,3 +34,10 @@ test("sandbox policy permits inline slide scripts only on the isolated editor ro
 test("non-sandbox policy rejects a missing nonce", () => {
   assert.throws(() => buildCsp(), /nonce is required/);
 });
+
+test("static gallery pages allow inline scripts but not eval", () => {
+  const policy = buildCsp({ isGallery: true });
+  assert.match(directive(policy, "script-src"), /'unsafe-inline'/);
+  assert.doesNotMatch(directive(policy, "script-src"), /'unsafe-eval'/);
+  assert.equal(directive(policy, "object-src"), "object-src 'none'");
+});
