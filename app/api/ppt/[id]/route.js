@@ -6,7 +6,7 @@ import Ppts from "@/models/Ppts";
 import User from "@/models/User";
 import { rateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
-// Saved-deck reads are owner-only. Public viewing uses the unguessable
+// Saved-deck reads are owner/recipient-only. Public viewing uses the unguessable
 // shareToken endpoint, which separately enforces password protection.
 export async function GET(req, { params }) {
   try {
