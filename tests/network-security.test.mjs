@@ -94,3 +94,10 @@ test("public DNS answers are allowed and DNS failures are blocked", async () => 
     true
   );
 });
+
+test("in-document URLs bypass DNS resolution", async () => {
+  const failIfCalled = async () => { throw new Error("should not resolve an in-document URL"); };
+  assert.equal(await isBlockedResourceRequest("data:text/plain,hello", failIfCalled), false);
+  assert.equal(await isBlockedResourceRequest("about:blank", failIfCalled), false);
+  assert.equal(await isBlockedResourceRequest("blob:https://example.com/id", failIfCalled), false);
+});
