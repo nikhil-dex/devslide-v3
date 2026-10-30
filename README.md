@@ -1,290 +1,227 @@
-# 🎨 AIRDeck
+# AIRDeck — AI Presentation Builder
 
-> AI-native presentation engine for generating beautiful, interactive HTML presentations.
+> Turn a prompt into a structured presentation, edit it, and export it as HTML, PDF, or PowerPoint.
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black)]()
-[![React](https://img.shields.io/badge/React-19-61DAFB)]()
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-149ECA)](https://react.dev/)
 [![License](https://img.shields.io/badge/License-Private-red)]()
-[![Status](https://img.shields.io/badge/Status-Active-success)]()
+
+AIRDeck is an AI-powered presentation application. It converts a natural-language brief into validated deck data, compiles that data into standalone HTML slides, and provides tools to preview, edit, save, share, and export presentations.
+
+The repository is currently named `devslide-v3`. Product branding is still being evaluated, so this README retains AIRDeck as the in-app/project name rather than treating DevSlide as a finalized brand.
 
 ---
 
-## ✨ Overview
+## What it does
 
-AIRDeck is an AI-powered presentation platform that transforms natural language into polished, interactive presentations.
+1. Describe the presentation you want in natural language.
+2. Generate a structured presentation using Google Gemini.
+3. Validate the generated deck against the application's schema.
+4. Compile the deck into standalone HTML slides using the theme and component registries.
+5. Preview and edit slides in the Sandbox, including AI-assisted editing of an individual slide.
+6. Save presentations, share them, and export them.
 
-Instead of manually arranging slides, users describe their ideas in plain English. AIRDeck generates a structured presentation, compiles it into responsive HTML, and applies professionally designed themes and reusable components.
+## Features
 
-Unlike traditional slide editors, AIRDeck is built around a presentation engine rather than a canvas editor.
+- **AI presentation generation** — Gemini turns a prompt into structured deck data rather than generating an unvalidated HTML document.
+- **Structured deck format** — a versioned JSON schema validates deck data before compilation.
+- **Theme registry** — ten built-in themes: Linear, Apple, Aurora, GitHub Dark, Academic, Dashboard Pro, Cyberpunk, Cinema, Notion, and Stripe.
+- **Reusable slide components** — ten registered components: Hero, Comparison, Timeline, Dashboard, Quote, Code, Steps, Table, Callout, and Image.
+- **HTML compiler** — compiles validated deck data into standalone 1920 × 1080 HTML slides.
+- **Sandbox editor** — preview slides, edit their HTML/CSS with Monaco, and manage the presentation.
+- **AI slide editing** — request a change to an individual slide using natural language.
+- **Presentation library** — save, view, rename, and delete your presentations.
+- **Sharing** — create public share links and share presentations with registered users.
+- **Exports** — download presentations as HTML, PDF, or PPTX.
+- **Authentication** — sign in with Google or GitHub through NextAuth.
+- **Credits and BYOK** — credit-based AI usage with Bring Your Own Gemini API Key support. A BYOK key is kept in the browser and sent with the request; it is not stored by the application server.
 
----
-
-## 🚀 Features
-
-- 🤖 AI-powered presentation generation
-- 🎨 Intelligent theme selection
-- 🧩 Component-driven slide system
-- 🌈 Multiple professionally designed themes
-- 📑 Interactive HTML presentations
-- ⚡ Compiler-based rendering pipeline
-- 🛡 Schema validation
-- 📱 Responsive presentations
-- 🎭 Modern animation system
-- 📚 Developer-friendly architecture
-
----
-
-## 🏗 Architecture
+## How the presentation engine works
 
 ```text
-                Prompt
-                   │
-                   ▼
-           AI Presentation Engine
-                   │
-                   ▼
-             Deck JSON Schema
-                   │
-                   ▼
-           Validation Pipeline
-                   │
-                   ▼
-          AIRDeck Compiler
-                   │
-          ┌────────┴────────┐
-          ▼                 ▼
-     Theme Engine     Component Engine
-          │                 │
-          └────────┬────────┘
-                   ▼
-           Interactive HTML
+Natural-language prompt
+        |
+        v
+Gemini generation
+        |
+        v
+Structured Deck JSON
+        |
+        v
+Schema validation
+        |
+        v
+Theme + component resolution
+        |
+        v
+AIRDeck compiler
+        |
+        v
+Standalone HTML slides
+        |
+        +----> Sandbox preview and editing
+        |
+        +----> Save and share
+        |
+        +----> HTML / PDF / PPTX export
 ```
 
----
+The generation pipeline and the editing pipeline are intentionally distinct today: initial generation produces structured deck data and compiles it to HTML, while the Sandbox and per-slide editing workflow operate on the resulting HTML.
 
-# 📂 Project Structure
+## Tech stack
+
+| Area | Technologies |
+| --- | --- |
+| Application | Next.js 16, React 19 |
+| Styling and UI | Tailwind CSS 4, Framer Motion, Lucide React |
+| Code editor | Monaco Editor |
+| AI | Google Gemini |
+| Authentication | NextAuth, Google OAuth, GitHub OAuth |
+| Database | MongoDB, Mongoose |
+| Presentation engine | Custom deck schema, theme registry, component registry, HTML compiler |
+| Export | Playwright / Chromium, PptxGenJS |
+| Export storage | Vercel Blob |
+
+## Repository layout
+
+The project is a Next.js application. Important areas include:
 
 ```text
 app/
-components/
-deck/
- ├── compile.js
- ├── schema.js
- ├── themes/
- ├── components/
- ├── animations/
- └── utils/
+  api/
+    auth/                 # NextAuth handlers
+    generate-ppt/         # AI deck generation
+    edit-slide/           # AI-assisted slide editing
+    save-ppt/             # Save presentation
+    ppt/                  # Presentation read/update/delete and sharing
+    export-pdf/            # PDF export
+    export-pptx/           # PowerPoint export
+  sandbox/                 # Presentation editor and preview
+  presentations/           # Saved presentations
+  present/                 # Shared presentation view
+  exportDetails/           # Save, share, and export flow
 
-public/
+components/                # Application UI and documentation
+deck/
+  schema.js                # Deck data validation
+  compile.js               # Structured deck -> standalone HTML
+  components/              # Registered slide components
+  themes/                  # Registered visual themes
+
+lib/                       # Database, AI, credits, BYOK, export helpers
+models/                    # Mongoose models
+tests/                     # Schema, compiler, API, and export tests
+public/                    # Static assets
 ```
 
----
+## Getting started
 
-# 🎨 Theme System
+### Requirements
 
-AIRDeck ships with professionally designed themes.
+- Node.js compatible with the installed Next.js 16 toolchain
+- npm
+- MongoDB
+- Google and/or GitHub OAuth credentials for sign-in
+- A Gemini API key for server-managed AI generation, unless users supply their own key through BYOK
 
-Current themes include:
-
-- Linear
-- Apple
-- Aurora
-- GitHub Dark
-- Academic
-- Dashboard Pro
-- Cinema
-- Notion
-- Stripe
-- Cyberpunk
-
-Each theme includes:
-
-- AI metadata
-- Color system
-- Typography
-- Layout rules
-- Motion tokens
-- Component styling
-
----
-
-# 🧩 Component System
-
-Reusable slide components.
-
-Examples:
-
-- Hero
-- Timeline
-- Dashboard
-- Comparison
-- Code
-- Metrics
-- Pricing
-- Steps
-- Features
-- Quote
-
-Each component includes:
-
-- Validation schema
-- AI metadata
-- Documentation
-- Example payload
-- Live preview
-
----
-
-# ⚙ Compiler
-
-AIRDeck compiles structured presentation data into responsive HTML.
-
-Pipeline:
-
-Deck JSON
-
-↓
-
-Validation
-
-↓
-
-Theme Resolution
-
-↓
-
-Component Rendering
-
-↓
-
-Compiled HTML
-
----
-
-# 🤖 AI Generation
-
-AIRDeck uses metadata-driven prompting.
-
-The AI does not generate HTML directly.
-
-Instead it generates structured presentation data which is validated before compilation.
-
-This approach makes generation:
-
-- Consistent
-- Predictable
-- Maintainable
-- Extensible
-
----
-
-# 📚 Documentation
-
-Built-in documentation includes:
-
-- Getting Started
-- Themes
-- Components
-- Prompt Guide
-- Examples
-- Playground
-- Reference
-
----
-
-# 🛣 Roadmap
-
-Current
-
-- ✅ Theme Engine
-- ✅ Component Engine
-- ✅ Compiler
-- ✅ Documentation
-- ✅ Website
-
-Next
-
-- Sandbox
-- Animation Engine
-- PPT Export
-- Publish Platform
-- Marketplace
-- Collaboration
-
----
-
-# 🛠 Tech Stack
-
-Frontend
-
-- Next.js
-- React
-- Tailwind CSS
-- Framer Motion
-
-Backend
-
-- Next.js API Routes
-
-AI
-
-- Google Gemini
-
-Presentation Engine
-
-- Custom Compiler
-- Custom Schema
-- Theme Engine
-- Component Engine
-
----
-
-# Development
-
-Clone
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/nikhil-dex/airDeck-v2.git
+git clone https://github.com/nikhil-dex/devslide-v3.git
+cd devslide-v3
 ```
 
-Install
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-Run
+### 3. Configure environment variables
+
+Create a `.env.local` file in the project root. Configure the values required by the integrations you intend to run:
+
+```dotenv
+# Database
+MONGODB_URI=
+
+# NextAuth
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=http://localhost:3000
+
+# OAuth providers
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+# Gemini (optional when users provide their own key)
+GEMINI_API_KEY=
+GEMINI_MODEL=
+
+# Export artifact storage (required for hosted export downloads)
+EXPORTS_BLOB_READ_WRITE_TOKEN=
+EXPORTS_STORE_ID=
+```
+
+For Vercel deployments, configure the Chromium runtime settings required by the export renderer, including `CHROMIUM_PACK_URL` where applicable. Never commit real secrets or API keys.
+
+### 4. Start the development server
 
 ```bash
 npm run dev
 ```
 
+Open [http://localhost:3000](http://localhost:3000).
+
+## Useful scripts
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the local development server |
+| `npm run build` | Create a production build |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run ESLint |
+| `npm run test:deck` | Run deck schema and compiler tests |
+| `npm run test:api` | Run API ownership tests |
+| `npm run test:pdf` | Run PDF export tests |
+| `npm run test:pdf:route` | Run PDF export route tests |
+| `npm run test:pptx` | Run PowerPoint export tests |
+| `npm run test:pptx:route` | Run PowerPoint export route tests |
+| `npm run test:download` | Run download helper tests |
+| `npm run test:storage` | Run export storage tests |
+
+Some tests require environment variables or local services. Configure those dependencies before running the relevant suite.
+
+## Deck format and extension points
+
+The deck schema, theme registry, component registry, and compiler are the core extension points:
+
+- Add or update deck validation in `deck/schema.js`.
+- Add a slide component under `deck/components/` and register it in `deck/components/index.js`.
+- Add a theme under `deck/themes/` and register it in `deck/themes/index.js`.
+- Keep AI generation instructions aligned with the registered themes, components, and schema.
+- Run the deck tests after changing schema or compiler behavior.
+
+The compiler is designed to turn validated, serializable deck data into self-contained HTML. Keep rendering deterministic and avoid relying on browser state or server-side application state inside compiled slides.
+
+## Current project status
+
+Implemented application capabilities include AI generation, schema validation, the theme and component registries, HTML compilation, the Sandbox editing workflow, saved presentations, sharing, and HTML/PDF/PPTX export.
+
+The README describes implemented repository functionality; it does not imply that a production deployment, external OAuth setup, export storage, or every environment-specific configuration is already provisioned.
+
+## Security notes
+
+- Keep `.env.local` and all credentials out of version control.
+- Treat user-provided Gemini keys as secrets. The BYOK implementation stores the key in the user's browser and sends it as a request header.
+- Validate and authorize presentation access on the server; do not rely on client-side visibility controls.
+- Configure production OAuth callback URLs, database access, and Blob permissions for the deployed environment.
+
+## License
+
+This repository is currently private. No public open-source license has been declared.
+
 ---
 
-# Philosophy
-
-AIRDeck is built around one simple idea.
-
-> Great presentations should be described, not designed.
-
-AI should handle repetitive work while people focus on communicating ideas.
-
----
-
-# Contributing
-
-AIRDeck is currently under active development.
-
-Public contributions are planned for the future.
-
----
-
-# License
-
-Currently Private.
-
-An open-core architecture is planned for future releases.
-
----
-
-Built with ❤️ using Next.js and AI.
+Built with Next.js, Gemini, and a custom presentation compiler.
