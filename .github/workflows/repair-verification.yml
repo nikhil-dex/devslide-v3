@@ -1,0 +1,39 @@
+name: Repair branch verification
+
+on:
+  push:
+    branches:
+      - repair/sandbox-and-tests
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repair-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  automated-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repair branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security regression tests
+        run: npm run test:security
+
+      - name: Run deck compiler tests
+        run: npm run test:deck
+
+      - name: Run sandbox regression tests
+        run: npm run test:sandbox
