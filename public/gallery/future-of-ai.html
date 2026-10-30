@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>checking_4</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0b0f1a; height: 100vh; overflow: hidden; font-family: system-ui, sans-serif; }
+  /* Slides are authored at 1920x1080; render at that size and scale to fit the window. */
+  #frame { position: absolute; width: 1920px; height: 1080px; border: 0; background: #fff; transform-origin: top left; }
+  .hud { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,.65); padding: 8px 14px; border-radius: 999px; opacity: 0; transition: opacity .25s; z-index: 10; }
+  body:hover .hud { opacity: 1; }
+  .hud button { background: rgba(255,255,255,.12); color: #fff; border: 0; border-radius: 8px; padding: 6px 14px; font-size: 14px; cursor: pointer; }
+  .hud button:hover { background: rgba(255,255,255,.28); }
+  .hud span { color: #fff; font-size: 14px; min-width: 52px; text-align: center; }
+  /* Touch navigation: invisible edge strips (tap = prev/next, swipe works too).
+     Touches on the slide iframe never reach this page, so these are the touch surface. */
+  .tapzone { position: fixed; top: 0; bottom: 0; width: 18%; z-index: 5; display: none; }
+  #tapL { left: 0; } #tapR { right: 0; }
+  @media (pointer: coarse) {
+    .tapzone { display: block; }
+    .hud { opacity: 1; } /* no hover on touch screens — keep controls visible */
+  }
+</style>
+</head>
+<body>
+<iframe id="frame" sandbox="allow-scripts" title="Slide"></iframe>
+<div id="tapL" class="tapzone"></div>
+<div id="tapR" class="tapzone"></div>
+<div class="hud">
+  <button id="prev">&#8592;</button>
+  <span id="counter"></span>
+  <button id="next">&#8594;</button>
+  <button id="fs">Fullscreen</button>
+</div>
+<script>
+  var slides = ["<!DOCTYPE html>\n<html lang='en'>\n\n<head>\n  <meta charset='UTF-8'>\n  <title>The Future of AI<\/title>\n  <link rel='preconnect' href='https://fonts.googleapis.com'>\n  <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>\n  <link href='https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap' rel='stylesheet'>\n  <style>\n    * {\n      box-sizing: border-box;\n      margin: 0;\n      padding: 0;\n    }\n\n    body {\n      background-color: #030305;\n      color: #ffffff;\n      font-family: 'Outfit', sans-serif;\n      overflow: hidden;\n      width: 1920px;\n      height: 1080px;\n    }\n\n    .canvas {\n      width: 1920px;\n      height: 1080px;\n      position: relative;\n      background: radial-gradient(circle at 50% 50%, #0a0b16 0%, #020204 100%);\n      overflow: hidden;\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      padding: 0 120px;\n    }\n\n    .bg-glow-1 {\n      position: absolute;\n      width: 800px;\n      height: 800px;\n      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0, 0, 0, 0) 70%);\n      top: -200px;\n      left: -100px;\n      filter: blur(80px);\n      pointer-events: none;\n    }\n\n    .bg-glow-2 {\n      position: absolute;\n      width: 800px;\n      height: 800px;\n      background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(0, 0, 0, 0) 70%);\n      bottom: -200px;\n      right: -100px;\n      filter: blur(80px);\n      pointer-events: none;\n    }\n\n    .bg-grid {\n      position: absolute;\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%;\n      background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);\n      background-size: 80px 80px;\n      pointer-events: none;\n    }\n\n    .content-side {\n      max-width: 920px;\n      z-index: 10;\n      display: flex;\n      flex-direction: column;\n      align-items: flex-start;\n    }\n\n    .badge {\n      display: inline-flex;\n      align-items: center;\n      gap: 10px;\n      background: rgba(255, 255, 255, 0.03);\n      border: 1px solid rgba(255, 255, 255, 0.08);\n      padding: 10px 20px;\n      border-radius: 100px;\n      font-size: 16px;\n      font-weight: 600;\n      letter-spacing: 0.15em;\n      color: #a5b4fc;\n      text-transform: uppercase;\n      margin-bottom: 40px;\n      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);\n    }\n\n    .badge-dot {\n      width: 8px;\n      height: 8px;\n      background: #38bdf8;\n      border-radius: 50%;\n      box-shadow: 0 0 12px #38bdf8;\n      animation: pulse-dot 2s infinite;\n    }\n\n    .main-title {\n      font-size: 96px;\n      font-weight: 800;\n      line-height: 1.1;\n      letter-spacing: -0.02em;\n      color: #ffffff;\n      margin-bottom: 32px;\n    }\n\n    .gradient-text {\n      background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);\n      -webkit-background-clip: text;\n      -webkit-text-fill-color: transparent;\n    }\n\n    .subtitle {\n      font-size: 26px;\n      font-weight: 300;\n      line-height: 1.6;\n      color: #94a3b8;\n      margin-bottom: 56px;\n      max-width: 840px;\n    }\n\n    .cta-container {\n      display: flex;\n      align-items: center;\n      gap: 28px;\n    }\n\n    .btn-primary {\n      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);\n      color: #ffffff;\n      padding: 18px 36px;\n      border-radius: 14px;\n      font-weight: 600;\n      font-size: 20px;\n      display: flex;\n      align-items: center;\n      gap: 12px;\n      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.35);\n      border: 1px solid rgba(255, 255, 255, 0.15);\n      transition: transform 0.3s ease;\n    }\n\n    .btn-icon {\n      width: 24px;\n      height: 24px;\n      stroke: currentColor;\n      fill: none;\n      stroke-width: 2.5;\n    }\n\n    .cta-hint {\n      font-size: 15px;\n      color: #64748b;\n      text-transform: uppercase;\n      letter-spacing: 0.08em;\n      font-weight: 600;\n    }\n\n    .visual-side {\n      width: 620px;\n      height: 620px;\n      position: relative;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      z-index: 10;\n      margin-right: 40px;\n    }\n\n    .core-glow {\n      position: absolute;\n      width: 340px;\n      height: 340px;\n      background: radial-gradient(circle, rgba(168, 85, 247, 0.35) 0%, rgba(99, 102, 241, 0.15) 50%, rgba(0, 0, 0, 0) 70%);\n      border-radius: 50%;\n      filter: blur(30px);\n      animation: core-pulse 4s ease-in-out infinite alternate;\n    }\n\n    .core-center {\n      position: absolute;\n      width: 140px;\n      height: 140px;\n      background: radial-gradient(circle, #ffffff 0%, #e0f2fe 30%, #38bdf8 70%, #0369a1 100%);\n      border-radius: 50%;\n      box-shadow: 0 0 60px rgba(56, 189, 248, 0.8), 0 0 120px rgba(99, 102, 241, 0.5);\n    }\n\n    .core-orbit {\n      position: absolute;\n      border-radius: 50%;\n      border: 1.5px dashed rgba(255, 255, 255, 0.12);\n    }\n\n    .core-orbit-1 {\n      width: 440px;\n      height: 440px;\n      border-color: rgba(99, 102, 241, 0.25);\n      animation: spin-clockwise 25s linear infinite;\n    }\n\n    .core-orbit-2 {\n      width: 560px;\n      height: 560px;\n      border-color: rgba(236, 72, 153, 0.18);\n      border-style: dotted;\n      animation: spin-counter 35s linear infinite;\n    }\n\n    .core-orbit-3 {\n      width: 280px;\n      height: 280px;\n      border: 1.5px solid rgba(56, 189, 248, 0.35);\n      border-top-color: transparent;\n      border-bottom-color: transparent;\n      animation: spin-clockwise 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;\n    }\n\n    @keyframes spin-clockwise {\n      from {\n        transform: rotate(0deg);\n      }\n\n      to {\n        transform: rotate(360deg);\n      }\n    }\n\n    @keyframes spin-counter {\n      from {\n        transform: rotate(360deg);\n      }\n\n      to {\n        transform: rotate(0deg);\n      }\n    }\n\n    @keyframes core-pulse {\n      0% {\n        transform: scale(0.92);\n        opacity: 0.7;\n      }\n\n      100% {\n        transform: scale(1.08);\n        opacity: 1;\n      }\n    }\n\n    @keyframes pulse-dot {\n\n      0%,\n      100% {\n        opacity: 0.6;\n        transform: scale(0.9);\n      }\n\n      50% {\n        opacity: 1;\n        transform: scale(1.1);\n      }\n    }\n\n  <\/style>\n<\/head>\n\n<body>\n  <div class='canvas'>\n    <div class='bg-glow-1'><\/div>\n    <div class='bg-glow-2'><\/div>\n    <div class='bg-grid'><\/div>\n    <div class='content-side'>\n      <div class='badge'><span class='badge-dot'><\/span>Keynote Presentation<\/div>\n      <h1 class='main-title'>The Future <br>of <span class='gradient-text'>Artificial Intelligence<\/span><\/h1>\n      <p class='subtitle'>Step into the next epoch of human capability. Explore how autonomous systems, neural\n        computing, and synthetic intuition are converging to reshape the boundaries of our world.<\/p>\n      <div class='cta-container'>\n        <div class='btn-primary'>Enter the Mind<svg class='btn-icon' viewBox='0 0 24 24'>\n            <path d='M5 12h14M12 5l7 7-7 7' />\n          <\/svg><\/div><span class='cta-hint'>Press Spacebar to proceed<\/span>\n      <\/div>\n    <\/div>\n    <div class='visual-side'>\n      <div class='core-orbit core-orbit-1'><\/div>\n      <div class='core-orbit core-orbit-2'><\/div>\n      <div class='core-orbit core-orbit-3'><\/div>\n      <div class='core-glow'><\/div>\n      <div class='core-center'><\/div>\n    <\/div>\n  <\/div>\n<script data-pptgen-autofit>(function () {\n  function fit() {\n    var body = document.body;\n    var root = body.children.length === 1 ? body.children[0] : body;\n    var w = Math.max(document.documentElement.scrollWidth, body.scrollWidth, root.scrollWidth);\n    var h = Math.max(document.documentElement.scrollHeight, body.scrollHeight, root.scrollHeight);\n    var s = Math.min(1920 / w, 1080 / h);\n    if (s < 0.999) {\n      root.style.transformOrigin = \"top center\";\n      root.style.transform = \"scale(\" + s + \")\";\n    }\n  }\n  if (document.readyState === \"complete\") setTimeout(fit, 60);\n  else window.addEventListener(\"load\", function () { setTimeout(fit, 60); });\n})();<\/script><\/body>\n\n<\/html>\n"];
+  var i = 0;
+  var frame = document.getElementById("frame");
+  var counter = document.getElementById("counter");
+  function layout() {
+    var w = window.innerWidth, h = window.innerHeight;
+    var s = Math.min(w / 1920, h / 1080);
+    frame.style.transform = "scale(" + s + ")";
+    frame.style.left = ((w - 1920 * s) / 2) + "px";
+    frame.style.top = ((h - 1080 * s) / 2) + "px";
+  }
+  window.addEventListener("resize", layout);
+  layout();
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    frame.srcdoc = slides[i];
+    counter.textContent = (i + 1) + " / " + slides.length;
+  }
+  document.getElementById("prev").onclick = function () { show(i - 1); };
+  document.getElementById("next").onclick = function () { show(i + 1); };
+  var fsBtn = document.getElementById("fs");
+  var docEl = document.documentElement;
+  if (!docEl.requestFullscreen && !docEl.webkitRequestFullscreen) {
+    fsBtn.style.display = "none"; // iOS Safari: no Fullscreen API; page already fills the screen
+  }
+  fsBtn.onclick = function () {
+    if (docEl.requestFullscreen) docEl.requestFullscreen();
+    else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+  };
+  function bindZone(el, dir) {
+    var sx = 0, sy = 0;
+    el.addEventListener("touchstart", function (e) {
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    }, { passive: true });
+    el.addEventListener("touchend", function (e) {
+      var dx = e.changedTouches[0].clientX - sx;
+      var dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) show(i + (dx < 0 ? 1 : -1));
+      else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) show(i + dir);
+    }, { passive: true });
+  }
+  bindZone(document.getElementById("tapL"), -1);
+  bindZone(document.getElementById("tapR"), 1);
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); show(i + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(i - 1); }
+    else if (e.key === "f" || e.key === "F") { document.documentElement.requestFullscreen(); }
+  });
+  show(0);
+</script>
+</body>
+</html>
