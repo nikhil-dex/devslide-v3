@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore, useCallback } from "react";
 import Navbar from "../../components/Header/navbar";
 import SlideFrame from "@/components/SlideFrame";
 import SandboxFrame from "@/components/SandboxFrame";
@@ -106,30 +106,18 @@ export default function Sandbox() {
     writeStoredValue("pptPages", JSON.stringify(codeRef.current));
     setSaveStatus("saved");
   };
-  useEffect(() => {
-    const handler = (event) => {
-        if (
-            event.data?.type ===
-            "log"
-        ) {
-            setLogs((prev) => [
-                ...prev.slice(-49),
-                event.data.data.join(" "),
-            ]);
-        }
-    };
+  const handleSandboxLog = useCallback((args) => {
+    const message = args.map((value) => {
+      if (typeof value === "string") return value;
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return String(value);
+      }
+    }).join(" ");
 
-    window.addEventListener(
-        "message",
-        handler
-    );
-
-    return () =>
-        window.removeEventListener(
-            "message",
-            handler
-        );
-}, []);
+    setLogs((prev) => [...prev.slice(-49), message]);
+  }, []);
 
 
 
@@ -625,6 +613,7 @@ export default function Sandbox() {
 <SandboxFrame
     html={previewCode[point]}
     sandboxKey={sandboxKey}
+    onConsoleMessage={handleSandboxLog}
     className="w-full aspect-video rounded-xl shadow-2xl"
 />
 
