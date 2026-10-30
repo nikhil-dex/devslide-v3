@@ -1,5 +1,6 @@
 import { dbConnect } from "@/lib/mongodb";
 import Ppts from "@/models/Ppts";
+import { getPublicDeckPayload } from "@/lib/publicDeckAccess.mjs";
 
 export async function GET(req, { params }) {
   try {
@@ -34,16 +35,8 @@ export async function GET(req, { params }) {
       );
     }
 
-    const requiresPassword = Boolean(ppt.passwordHash);
-    let slides = [];
-
     // Never return protected slide content from the unauthenticated endpoint.
-    if (!requiresPassword) {
-      slides = ppt.ppt_History || [];
-      if (slides.length === 1 && Array.isArray(slides[0])) {
-        slides = slides[0];
-      }
-    }
+    const { requiresPassword, slides } = getPublicDeckPayload(ppt);
 
     return Response.json(
       {
