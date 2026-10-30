@@ -59,6 +59,6 @@ export const config = {
      * Apply to application routes and API routes. Skip Next.js internals and
      * static assets; API routes still receive the baseline security headers.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|js|css|map)$).*)",
   ],
 };
