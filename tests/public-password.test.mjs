@@ -14,26 +14,28 @@ globalThis.__publicDeck = {
 globalThis.__rateLimitResult = { ok: true };
 globalThis.__passwordMatches = true;
 
-mock.module(new URL("../lib/mongodb.js", import.meta.url).href, {
+mock.module(new URL("../lib/mongodb", import.meta.url).href, {
   namedExports: { dbConnect: async () => {} },
 });
 
-mock.module(new URL("../models/Ppts.js", import.meta.url).href, {
+mock.module(new URL("../models/Ppts", import.meta.url).href, {
   namedExports: {
-    findOneAndUpdate: () => ({
-      select: () => ({
-        lean: async () => ({ ...globalThis.__publicDeck }),
+    default: {
+      findOneAndUpdate: () => ({
+        select: () => ({
+          lean: async () => ({ ...globalThis.__publicDeck }),
+        }),
       }),
-    }),
-    findOne: () => ({
-      select: () => ({
-        lean: async () => ({ ...globalThis.__publicDeck }),
+      findOne: () => ({
+        select: () => ({
+          lean: async () => ({ ...globalThis.__publicDeck }),
+        }),
       }),
-    }),
+    },
   },
 });
 
-mock.module(new URL("../lib/rateLimit.js", import.meta.url).href, {
+mock.module(new URL("../lib/rateLimit", import.meta.url).href, {
   namedExports: {
     rateLimit: () => globalThis.__rateLimitResult,
     rateLimitResponse: (seconds) =>
