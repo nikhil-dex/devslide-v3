@@ -9,12 +9,15 @@ export function proxy(request: NextRequest) {
   const nonce = createNonce();
   const isSandbox = request.nextUrl.pathname === "/sandbox" ||
     request.nextUrl.pathname.startsWith("/sandbox/");
+  const isGallery = request.nextUrl.pathname.startsWith("/gallery/") &&
+    request.nextUrl.pathname.endsWith(".html");
   const isDevelopment = process.env.NODE_ENV === "development";
 
   const csp = buildCsp({
     nonce,
     isDevelopment,
     isSandbox,
+    isGallery,
   });
 
   const requestHeaders = new Headers(request.headers);
