@@ -9,7 +9,7 @@ test("console bridge stays after the doctype and inside an existing head", () =>
   assert.ok(result.startsWith("<!DOCTYPE html>"));
   assert.ok(result.indexOf("<head>") < result.indexOf("parent.postMessage"));
   assert.ok(result.indexOf("parent.postMessage") < result.indexOf("</head>"));
-  assert.ok(result.includes("</script></head>"));
+  assert.ok(result.includes("</script><title>Slide</title>"));
 });
 
 test("console bridge creates a head for a full HTML document without one", () => {
@@ -45,4 +45,9 @@ test("non-string slide entries are discarded", () => {
 
 test("storage read failures recover without crashing the Sandbox", () => {
   assert.deepEqual(readStoredSlides(() => { throw new Error("Storage unavailable"); }), []);
+});
+
+test("console bridge adds a doctype to full documents that omit it", () => {
+  const result = withConsoleBridge("<html><head></head><body>Slide</body></html>");
+  assert.ok(result.startsWith("<!DOCTYPE html>"));
 });
