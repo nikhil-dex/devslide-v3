@@ -15,25 +15,10 @@ import { GALLERY_DECKS, type GalleryDeck } from "./landing-data";
 // (keeping the marquee at 60fps and opening the modal); inside the modal the
 // iframe is fully interactive — tabs, buttons and keyboard all work.
 
-type ViewerWindow = Window & {
-  show?: (n: number) => void;
-  i?: number;
-  slides?: string[];
-};
-
 function advanceDecks(root: HTMLElement) {
   root.querySelectorAll("iframe").forEach((frame) => {
     try {
-      const w = frame.contentWindow as ViewerWindow | null;
-      if (
-        w &&
-        typeof w.show === "function" &&
-        typeof w.i === "number" &&
-        Array.isArray(w.slides) &&
-        w.slides.length > 1
-      ) {
-        w.show((w.i + 1) % w.slides.length);
-      }
+      frame.contentWindow?.postMessage({ type: "airdeck:advance" }, "*");
     } catch {
       // Cross-origin or not-yet-loaded frames: skip silently.
     }
@@ -63,7 +48,7 @@ function DeckCard({
             src={deck.src}
             title={`${deck.title} — live preview`}
             loading="lazy"
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts"
             className="absolute inset-0 w-full h-full border-0"
             tabIndex={-1}
           />
