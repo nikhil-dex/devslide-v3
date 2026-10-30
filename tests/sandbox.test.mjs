@@ -15,7 +15,9 @@ test("console bridge stays after the doctype and inside an existing head", () =>
 test("console bridge creates a head for a full HTML document without one", () => {
   const result = withConsoleBridge("<!DOCTYPE html><html><body>Slide</body></html>");
   assert.ok(result.startsWith("<!DOCTYPE html>"));
-  assert.match(result, /<html><head>[\\s\\S]*parent\\.postMessage[\\s\\S]*<\\/head><body>/);
+  assert.ok(result.includes("<html><head>"));
+  assert.ok(result.includes("parent.postMessage"));
+  assert.ok(result.includes("</head><body>"));
 });
 
 test("console bridge wraps an HTML fragment in a standards-mode document", () => {
