@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:api": "node --env-file=.env.local --test tests/api-ownership.test.mjs",
-    "test:deck": "node --test tests/deck-schema.test.mjs tests/deck-compile.test.mjs",
+    "test:deck": "node --import ./tests/register-loader.mjs --test tests/deck-schema.test.mjs tests/deck-compile.test.mjs",
     "test:pdf": "node --import ./tests/register-loader.mjs --test tests/pdf-export.test.mjs",
     "test:pdf:route": "node --import ./tests/register-loader.mjs --experimental-test-module-mocks --test tests/export-pdf-route.test.mjs",
     "test:download": "node --import ./tests/register-loader.mjs --test tests/download-helper.test.mjs",
