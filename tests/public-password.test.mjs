@@ -14,11 +14,11 @@ globalThis.__publicDeck = {
 globalThis.__rateLimitResult = { ok: true };
 globalThis.__passwordMatches = true;
 
-mock.module("@/lib/mongodb", {
+mock.module(new URL("../lib/mongodb.js", import.meta.url).href, {
   namedExports: { dbConnect: async () => {} },
 });
 
-mock.module("@/models/Ppts", {
+mock.module(new URL("../models/Ppts.js", import.meta.url).href, {
   namedExports: {
     findOneAndUpdate: () => ({
       select: () => ({
@@ -33,7 +33,7 @@ mock.module("@/models/Ppts", {
   },
 });
 
-mock.module("@/lib/rateLimit", {
+mock.module(new URL("../lib/rateLimit.js", import.meta.url).href, {
   namedExports: {
     rateLimit: () => globalThis.__rateLimitResult,
     rateLimitResponse: (seconds) =>
