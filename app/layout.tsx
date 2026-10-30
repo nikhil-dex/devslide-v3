@@ -1,0 +1,61 @@
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { AuthProvider } from "../providers/AuthProvider";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  // Absolute base for OG image URLs in link unfurls.
+  // Vercel injects VERCEL_URL; NEXTAUTH_URL (the stable prod domain) wins when set.
+  metadataBase: new URL(
+    process.env.NEXTAUTH_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+  ),
+  title: "Airdeck-Ai",
+  description: "The next generation of presentations—interactive, programmable, and AI-powered.",
+  // iOS: run without browser chrome when launched from the home screen.
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Airdeck-Ai",
+  },
+  icons: {
+    icon: "/icons/icon-192.png",
+    shortcut: "/favicon.ico",
+    apple: "/icons/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b0f1a",
+  // Let content extend under the iPhone notch/home indicator in standalone mode.
+  viewportFit: "cover",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          <AuthProvider>
+       
+        {children}
+      
+       </AuthProvider>
+      </body>
+    </html>
+  );
+}

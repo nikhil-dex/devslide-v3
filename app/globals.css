@@ -1,0 +1,633 @@
+@import "tailwindcss";
+
+/* ── THEME TOKENS (aurora/glass reference theme) ─────────────── */
+:root {
+  --c-bg: #070709;
+  --c-surface: rgba(255, 255, 255, 0.04);
+  --c-border: rgba(255, 255, 255, 0.1);
+  --c-text: #e8e6f0;
+  --c-muted: rgba(232, 230, 240, 0.45);
+  --c-accent1: #b3ffc8; /* mint  — success/positive   */
+  --c-accent2: #ff6ef7; /* pink  — highlights         */
+  --c-accent3: #5eadff; /* blue  — primary/interactive */
+}
+
+@theme inline {
+  --color-background: var(--c-bg);
+  --color-foreground: var(--c-text);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(232, 230, 240, 0.35);
+  opacity: 1;
+}
+
+/* ── AURORA MESH BACKGROUND ──────────────────────────────────── */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.16;
+  animation: aurora-drift 16s ease-in-out infinite alternate;
+}
+
+.aurora-blob:nth-child(1) {
+  width: 70vw;
+  height: 60vh;
+  background: radial-gradient(circle, var(--c-accent1) 0%, transparent 70%);
+  top: -20%;
+  left: -10%;
+  animation-duration: 14s;
+}
+.aurora-blob:nth-child(2) {
+  width: 50vw;
+  height: 70vh;
+  background: radial-gradient(circle, var(--c-accent2) 0%, transparent 70%);
+  top: 20%;
+  right: -15%;
+  animation-duration: 18s;
+  animation-delay: -6s;
+}
+.aurora-blob:nth-child(3) {
+  width: 55vw;
+  height: 55vh;
+  background: radial-gradient(circle, var(--c-accent3) 0%, transparent 70%);
+  bottom: -10%;
+  left: 30%;
+  animation-duration: 20s;
+  animation-delay: -3s;
+}
+
+@keyframes aurora-drift {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(6vw, -4vh) scale(1.08); }
+  66% { transform: translate(-4vw, 5vh) scale(0.95); }
+  100% { transform: translate(3vw, 2vh) scale(1.05); }
+}
+
+/* Film-grain noise overlay */
+.noise {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.04;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* Content above the aurora/noise layers */
+.page-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── GLASS CARD ──────────────────────────────────────────────── */
+/* No overflow:hidden here — dropdown menus inside cards must be able to
+   escape the card bounds; the shimmer clips itself via border-radius. */
+.glass-card {
+  position: relative;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+}
+
+/* Shimmer sweep on hover */
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  background-position: -100% 0;
+  transition: background-position 0.6s ease;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.glass-card:hover::before {
+  background-position: 200% 0;
+}
+
+/* ── TEXT & BUTTON ACCENTS ───────────────────────────────────── */
+.text-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--c-accent1) 0%,
+    var(--c-accent3) 50%,
+    var(--c-accent2) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--c-accent3), var(--c-accent2));
+  color: #0a0a12;
+  font-weight: 600;
+  transition: opacity 0.25s, transform 0.2s, box-shadow 0.25s;
+}
+.btn-accent:hover:not(:disabled) {
+  opacity: 0.9;
+  box-shadow: 0 0 32px rgba(94, 173, 255, 0.35);
+}
+.btn-accent:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--c-muted);
+  cursor: not-allowed;
+}
+
+.tag {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  border: 1px solid var(--c-border);
+  padding: 0.35rem 0.8rem;
+  border-radius: 2rem;
+}
+
+/* ── BRAND GLITCH (used sparingly, on the logo/hero only) ────── */
+.glitch {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    var(--c-accent1) 0%,
+    var(--c-accent3) 50%,
+    var(--c-accent2) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: glitch-main 6s infinite;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.glitch::before {
+  -webkit-text-fill-color: var(--c-accent2);
+  clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+  animation: glitch-before 6s infinite;
+}
+
+.glitch::after {
+  -webkit-text-fill-color: var(--c-accent3);
+  clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+  animation: glitch-after 6s infinite;
+}
+
+@keyframes glitch-main {
+  0%, 94%, 100% { transform: none; }
+  95% { transform: skewX(-0.5deg); }
+  96% { transform: skewX(0.8deg) translateX(-3px); }
+  97% { transform: none; }
+  98% { transform: translateX(3px); }
+  99% { transform: skewX(-0.3deg); }
+}
+
+@keyframes glitch-before {
+  0%, 94%, 100% { transform: none; opacity: 0; }
+  95% { transform: translateX(-5px); opacity: 0.7; }
+  96% { transform: translateX(3px); opacity: 0.7; }
+  97% { transform: none; opacity: 0; }
+  98%, 99% { transform: translateX(-2px); opacity: 0.5; }
+}
+
+@keyframes glitch-after {
+  0%, 95%, 100% { transform: none; opacity: 0; }
+  96% { transform: translateX(5px); opacity: 0.7; }
+  97% { transform: translateX(-3px); opacity: 0.7; }
+  98% { transform: none; opacity: 0; }
+  99% { transform: translateX(2px); opacity: 0.4; }
+}
+
+/* Phones (and especially installed PWAs, which get tighter GPU/memory
+   limits than Safari tabs): blur filters and backdrop-filter are the two
+   known WebKit crashers when combined with iframes. Below tablet width we
+   remove them entirely and substitute cheap static equivalents. */
+@media (max-width: 767px) {
+  /* Aurora: no blurred layers at all — one static gradient wash instead. */
+  .aurora-blob {
+    display: none;
+  }
+  .aurora {
+    background:
+      radial-gradient(ellipse at 15% 10%, rgba(179, 255, 200, 0.07) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 30%, rgba(255, 110, 247, 0.06) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 95%, rgba(94, 173, 255, 0.07) 0%, transparent 55%);
+  }
+
+  /* Glass: no backdrop-filter — solid dark surface keeps the look. */
+  .glass-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(18, 18, 24, 0.92);
+  }
+
+  /* Navbar/toolbars use Tailwind's backdrop-blur-xl utility. */
+  .backdrop-blur-xl {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: rgba(10, 10, 14, 0.96) !important;
+  }
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blob,
+  .glitch,
+  .glitch::before,
+  .glitch::after {
+    animation: none;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   LANDING PAGE (/) — marketing-only styles, all `.lp-` / `.glitch-btn`
+   namespaced so they can never collide with app screens.
+   ════════════════════════════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Anchor targets clear the sticky nav */
+.lp-section {
+  scroll-margin-top: 96px;
+}
+
+/* ── RETRO GLITCH CTA (accent — used at most three times per page) ── */
+.glitch-btn {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  outline: none;
+}
+
+.glitch-btn svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.glitch-btn text {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+}
+
+/* CRT frame flickers to full strength on hover */
+.glitch-btn .glitch-btn-frame {
+  transition: stroke-opacity 0.25s ease;
+}
+.glitch-btn:hover .glitch-btn-frame,
+.glitch-btn:focus-visible .glitch-btn-frame {
+  stroke-opacity: 1;
+}
+
+/* Left signal bars fill vertically on hover (SVG geometry via CSS) */
+.glitch-btn .glitch-btn-fill {
+  transition: height 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glitch-btn:focus-visible {
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px #070709, 0 0 0 4px rgba(94, 173, 255, 0.7);
+}
+
+/* ── LOGO MARQUEE (Trusted By) ── */
+.lp-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.lp-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 4rem;
+  animation: lp-marquee-scroll 30s linear infinite;
+}
+
+.lp-marquee:hover .lp-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes lp-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ── FEATURE CARD: conic glow border on hover (from the effects kit) ── */
+@property --lp-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.lp-glow-card {
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.lp-glow-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--lp-angle, 0deg),
+    var(--c-accent1),
+    var(--c-accent2),
+    var(--c-accent3),
+    var(--c-accent1)
+  );
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s;
+  animation: lp-border-spin 4s linear infinite;
+}
+
+.lp-glow-card:hover {
+  transform: translateY(-4px);
+}
+
+.lp-glow-card:hover::after {
+  opacity: 0.9;
+}
+
+@keyframes lp-border-spin {
+  to { --lp-angle: 360deg; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   DOCUMENTATION (/docs) — all `.docs-` namespaced.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Sticky sidebar scroll areas: thin, unobtrusive scrollbars */
+.docs-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+.docs-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.docs-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+.docs-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Anchor targets clear the sticky nav + progress bar */
+.docs-anchor {
+  scroll-margin-top: 108px;
+}
+
+/* Gradient-border card: a static, quieter cousin of .lp-glow-card —
+   the border lights up on hover without the spinning conic animation. */
+.docs-grad-card {
+  position: relative;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.docs-grad-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    var(--c-accent1),
+    var(--c-accent3) 45%,
+    var(--c-accent2)
+  );
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.docs-grad-card:hover {
+  transform: translateY(-3px);
+}
+.docs-grad-card:hover::after,
+.docs-grad-card:focus-within::after {
+  opacity: 0.55;
+}
+
+/* Cursor-following hover light. The card sets --mx/--my in JS; with no
+   pointer the layer stays invisible, so it degrades to a plain card. */
+.docs-spotlight {
+  position: relative;
+  overflow: hidden;
+}
+.docs-spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    240px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(94, 173, 255, 0.1),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.docs-spotlight:hover::before {
+  opacity: 1;
+}
+
+/* Live slide preview. The compiled slide is a real 1920×1080 document, so it
+   is rendered at true size inside a container-query box and scaled down —
+   the output is never modified to fit the docs. */
+.docs-slide-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #0b0f1a;
+}
+
+/* The slide renders at its true 1920×1080 and is scaled down to the box.
+   `--slide-scale` is measured by SlidePreview (the same approach AIRDeck's
+   own export viewer uses); the default keeps a sane frame before measurement. */
+.docs-slide-frame > iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  border: 0;
+  transform-origin: top left;
+  transform: scale(var(--slide-scale, 0.1786));
+}
+
+/* Panel fade used by the pipeline stepper (no layout shift, no JS) */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Code block: optional line numbers and highlighted lines */
+.docs-code-line {
+  display: block;
+  padding: 0 1rem;
+  border-left: 2px solid transparent;
+}
+
+.docs-code-line[data-highlight="true"] {
+  background: rgba(94, 173, 255, 0.09);
+  border-left-color: #5eadff;
+}
+
+.docs-code-num {
+  display: inline-block;
+  width: 1.75rem;
+  margin-right: 0.75rem;
+  text-align: right;
+  color: rgba(232, 230, 240, 0.22);
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .docs-grad-card,
+  .docs-grad-card:hover {
+    transform: none;
+  }
+}
+
+/* ── LIVE GALLERY: presentation wall ── */
+/* Infinite marquee: two identical copies, translateX(-50%) wraps seamlessly.
+   Transform-only + will-change keeps it on the GPU. */
+.lp-wall {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.lp-wall-track {
+  display: flex;
+  width: max-content;
+  animation: lp-wall-scroll 95s linear infinite;
+  will-change: transform;
+}
+
+.lp-wall:hover .lp-wall-track {
+  animation-play-state: paused;
+}
+
+.lp-wall-group {
+  display: flex;
+  gap: 28px;
+  padding-right: 28px;
+  align-items: center;
+}
+
+@keyframes lp-wall-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Cards: resting tilt via --tilt; hover straightens, scales and glows
+   while the rest of the wall dims. */
+.lp-live-card {
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease,
+    box-shadow 0.45s ease;
+  cursor: pointer;
+}
+
+.lp-wall-track:hover .lp-live-card {
+  opacity: 0.4;
+}
+
+.lp-wall-track .lp-live-card:hover {
+  opacity: 1;
+  transform: rotate(0deg) scale(1.05);
+  z-index: 2;
+  box-shadow:
+    0 0 0 1px rgba(94, 173, 255, 0.35),
+    0 0 44px rgba(94, 173, 255, 0.22),
+    0 0 90px rgba(255, 110, 247, 0.12);
+}
+
+/* Mobile + reduced motion: the wall becomes a native horizontal scroller. */
+@media (max-width: 767px) {
+  .lp-wall {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .lp-wall::-webkit-scrollbar {
+    display: none;
+  }
+  .lp-wall-track {
+    animation: none;
+  }
+  .lp-wall-copy-b {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .lp-marquee-track,
+  .lp-glow-card::after {
+    animation: none;
+  }
+  .lp-glow-card,
+  .lp-glow-card:hover {
+    transform: none;
+  }
+  .lp-wall {
+    overflow-x: auto;
+  }
+  .lp-wall-track {
+    animation: none;
+  }
+  .lp-wall-copy-b {
+    display: none;
+  }
+  .lp-live-card,
+  .lp-wall-track .lp-live-card:hover {
+    transform: none;
+  }
+}
