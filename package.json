@@ -15,7 +15,8 @@
     "test:pptx": "node --import ./tests/register-loader.mjs --test tests/pptx-export.test.mjs",
     "test:pptx:route": "node --import ./tests/register-loader.mjs --experimental-test-module-mocks --test tests/export-pptx-route.test.mjs",
     "test:storage": "node --import ./tests/register-loader.mjs --test tests/export-storage.test.mjs",
-    "test:sandbox": "node --test tests/sandbox.test.mjs"
+    "test:sandbox": "node --test tests/sandbox.test.mjs",
+    "test:csp": "node --test tests/csp.test.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.8.0-rc.2",
