@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>amazing</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0b0f1a; height: 100vh; overflow: hidden; font-family: system-ui, sans-serif; }
+  /* Slides are authored at 1920x1080; render at that size and scale to fit the window. */
+  #frame { position: absolute; width: 1920px; height: 1080px; border: 0; background: #fff; transform-origin: top left; }
+  .hud { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,.65); padding: 8px 14px; border-radius: 999px; opacity: 0; transition: opacity .25s; z-index: 10; }
+  body:hover .hud { opacity: 1; }
+  .hud button { background: rgba(255,255,255,.12); color: #fff; border: 0; border-radius: 8px; padding: 6px 14px; font-size: 14px; cursor: pointer; }
+  .hud button:hover { background: rgba(255,255,255,.28); }
+  .hud span { color: #fff; font-size: 14px; min-width: 52px; text-align: center; }
+  /* Touch navigation: invisible edge strips (tap = prev/next, swipe works too).
+     Touches on the slide iframe never reach this page, so these are the touch surface. */
+  .tapzone { position: fixed; top: 0; bottom: 0; width: 18%; z-index: 5; display: none; }
+  #tapL { left: 0; } #tapR { right: 0; }
+  @media (pointer: coarse) {
+    .tapzone { display: block; }
+    .hud { opacity: 1; } /* no hover on touch screens — keep controls visible */
+  }
+</style>
+</head>
+<body>
+<iframe id="frame" sandbox="allow-scripts" title="Slide"></iframe>
+<div id="tapL" class="tapzone"></div>
+<div id="tapR" class="tapzone"></div>
+<div class="hud">
+  <button id="prev">&#8592;</button>
+  <span id="counter"></span>
+  <button id="next">&#8594;</button>
+  <button id="fs">Fullscreen</button>
+</div>
+<script>
+  var slides = ["<!DOCTYPE html>\n<html lang=\"en\">\n\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Unleashing the Cosmic Engine<\/title>\n  <style>\n    * {\n      box-sizing: border-box;\n      margin: 0;\n      padding: 0;\n    }\n\n    body {\n      width: 1920px;\n      height: 1080px;\n      background-color: #030206;\n      color: #ffffff;\n      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      overflow: hidden;\n    }\n\n    .canvas {\n      width: 1920px;\n      height: 1080px;\n      padding: 100px 120px;\n      background: radial-gradient(circle at 80% 50%, #200a18 0%, #05020a 70%, #020104 100%);\n      display: flex;\n      flex-direction: row;\n      align-items: center;\n      justify-content: space-between;\n      position: relative;\n    }\n\n    .content {\n      width: 800px;\n      display: flex;\n      flex-direction: column;\n      gap: 40px;\n      z-index: 10;\n    }\n\n    .eyebrow {\n      font-size: 18px;\n      text-transform: uppercase;\n      letter-spacing: 8px;\n      color: #ff3e6c;\n      font-weight: 800;\n    }\n\n    .title {\n      font-size: 76px;\n      line-height: 1.1;\n      font-weight: 900;\n      background: linear-gradient(135deg, #ffffff 0%, #a5a5a5 100%);\n      -webkit-background-clip: text;\n      -webkit-text-fill-color: transparent;\n      letter-spacing: -2px;\n    }\n\n    .description {\n      font-size: 24px;\n      line-height: 1.6;\n      color: #a0a0ba;\n      max-width: 700px;\n    }\n\n    .stats {\n      display: flex;\n      gap: 60px;\n      margin-top: 20px;\n    }\n\n    .stat-box {\n      display: flex;\n      flex-direction: column;\n      gap: 10px;\n    }\n\n    .stat-val {\n      font-size: 48px;\n      font-weight: 800;\n      color: #ff9f43;\n      font-family: monospace;\n    }\n\n    .stat-lbl {\n      font-size: 14px;\n      text-transform: uppercase;\n      letter-spacing: 3px;\n      color: #707080;\n    }\n\n    .visual {\n      width: 700px;\n      height: 700px;\n      position: relative;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n\n    .core {\n      width: 250px;\n      height: 250px;\n      background: radial-gradient(circle, #ff3e6c 0%, rgba(255, 62, 108, 0) 70%);\n      border-radius: 50%;\n      position: absolute;\n      animation: pulse 4s infinite ease-in-out;\n      filter: blur(10px);\n    }\n\n    .ring-1,\n    .ring-2,\n    .ring-3 {\n      position: absolute;\n      border-radius: 50%;\n      border: 2px dashed rgba(255, 255, 255, 0.15);\n    }\n\n    .ring-1 {\n      width: 400px;\n      height: 400px;\n      border-color: rgba(255, 62, 108, 0.4);\n      animation: rotateCW 20s linear infinite;\n    }\n\n    .ring-2 {\n      width: 500px;\n      height: 500px;\n      border-color: rgba(255, 159, 67, 0.3);\n      animation: rotateCCW 25s linear infinite;\n    }\n\n    .ring-3 {\n      width: 600px;\n      height: 600px;\n      border-color: rgba(255, 255, 255, 0.1);\n      animation: rotateCW 40s linear infinite;\n    }\n\n    .particles {\n      position: absolute;\n      width: 100%;\n      height: 100%;\n      animation: rotateCW 60s linear infinite;\n    }\n\n    .dot {\n      position: absolute;\n      width: 8px;\n      height: 8px;\n      background-color: #ff9f43;\n      border-radius: 50%;\n      box-shadow: 0 0 15px #ff9f43;\n    }\n\n    .dot:nth-child(1) {\n      top: 20%;\n      left: 30%;\n    }\n\n    .dot:nth-child(2) {\n      top: 80%;\n      left: 70%;\n      background-color: #ff3e6c;\n      box-shadow: 0 0 15px #ff3e6c;\n    }\n\n    .dot:nth-child(3) {\n      top: 40%;\n      left: 85%;\n    }\n\n    .dot:nth-child(4) {\n      top: 75%;\n      left: 20%;\n      background-color: #ff3e6c;\n      box-shadow: 0 0 15px #ff3e6c;\n    }\n\n    @keyframes pulse {\n\n      0%,\n      100% {\n        transform: scale(1);\n        opacity: 0.6;\n      }\n\n      50% {\n        transform: scale(1.3);\n        opacity: 1;\n        filter: blur(5px) drop-shadow(0 0 30px #ff3e6c);\n      }\n    }\n\n    @keyframes rotateCW {\n      from {\n        transform: rotate(0deg);\n      }\n\n      to {\n        transform: rotate(360deg);\n      }\n    }\n\n    @keyframes rotateCCW {\n      from {\n        transform: rotate(360deg);\n      }\n\n      to {\n        transform: rotate(0deg);\n      }\n    }\n\n  <\/style>\n<\/head>\n\n<body>\n  <div class=\"canvas\">\n    <div class=\"content\">\n      <div class=\"eyebrow\">System Strength Alpha<\/div>\n      <h1 class=\"title\">UNLEASHING<br>THE COSMIC ENGINE<\/h1>\n      <p class=\"description\">\n        Witness the culmination of raw processing and aesthetic synergy. This is not just digital generation—it is an\n        optimized orchestration of dynamic force.\n      <\/p>\n      <div class=\"stats\">\n        <div class=\"stat-box\">\n          <div class=\"stat-val\">1.21 GW<\/div>\n          <div class=\"stat-lbl\">Peak Energy Output<\/div>\n        <\/div>\n        <div class=\"stat-box\">\n          <div class=\"stat-val\">99.9%<\/div>\n          <div class=\"stat-lbl\">Structural Integrity<\/div>\n        <\/div>\n      <\/div>\n    <\/div>\n    <div class=\"visual\">\n      <div class=\"core\"><\/div>\n      <div class=\"ring-1\"><\/div>\n      <div class=\"ring-2\"><\/div>\n      <div class=\"ring-3\"><\/div>\n      <div class=\"particles\">\n        <div class=\"dot\"><\/div>\n        <div class=\"dot\"><\/div>\n        <div class=\"dot\"><\/div>\n        <div class=\"dot\"><\/div>\n      <\/div>\n    <\/div>\n  <\/div>\n<script data-pptgen-autofit>(function () {\n  function fit() {\n    var body = document.body;\n    var root = body.children.length === 1 ? body.children[0] : body;\n    var w = Math.max(document.documentElement.scrollWidth, body.scrollWidth, root.scrollWidth);\n    var h = Math.max(document.documentElement.scrollHeight, body.scrollHeight, root.scrollHeight);\n    var s = Math.min(1920 / w, 1080 / h);\n    if (s < 0.999) {\n      root.style.transformOrigin = \"top center\";\n      root.style.transform = \"scale(\" + s + \")\";\n    }\n  }\n  if (document.readyState === \"complete\") setTimeout(fit, 60);\n  else window.addEventListener(\"load\", function () { setTimeout(fit, 60); });\n})();<\/script><\/body>\n\n<\/html>\n","<!DOCTYPE html>\n<html lang=\"en\">\n\n<head>\n  <meta charset=\"UTF-8\">\n  <title>The Mind Over Machine<\/title>\n  <style>\n    * {\n      box-sizing: border-box;\n      margin: 0;\n      padding: 0;\n    }\n\n    body {\n      width: 1920px;\n      height: 1080px;\n      background-color: #04080f;\n      color: #ffffff;\n      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      overflow: hidden;\n    }\n\n    .canvas {\n      width: 1920px;\n      height: 1080px;\n      padding: 100px 120px;\n      background: radial-gradient(circle at 20% 80%, #0c1b33 0%, #04080f 80%);\n      display: flex;\n      flex-direction: row-reverse;\n      align-items: center;\n      justify-content: space-between;\n      position: relative;\n    }\n\n    .content {\n      width: 800px;\n      display: flex;\n      flex-direction: column;\n      gap: 40px;\n      z-index: 10;\n    }\n\n    .eyebrow {\n      font-size: 18px;\n      text-transform: uppercase;\n      letter-spacing: 8px;\n      color: #00f2fe;\n      font-weight: 800;\n    }\n\n    .title {\n      font-size: 76px;\n      line-height: 1.1;\n      font-weight: 900;\n      background: linear-gradient(135deg, #ffffff 0%, #8bc6ec 100%);\n      -webkit-background-clip: text;\n      -webkit-text-fill-color: transparent;\n      letter-spacing: -2px;\n    }\n\n    .description {\n      font-size: 24px;\n      line-height: 1.6;\n      color: #a0b2c6;\n      max-width: 700px;\n    }\n\n    .metrics-grid {\n      display: grid;\n      grid-template-columns: repeat(2, 1fr);\n      gap: 30px;\n      margin-top: 10px;\n    }\n\n    .metric-card {\n      background: rgba(255, 255, 255, 0.03);\n      border: 1px solid rgba(0, 242, 254, 0.2);\n      border-radius: 12px;\n      padding: 24px;\n      display: flex;\n      flex-direction: column;\n      gap: 8px;\n    }\n\n    .metric-card h3 {\n      font-size: 14px;\n      text-transform: uppercase;\n      letter-spacing: 2px;\n      color: #708aa6;\n    }\n\n    .metric-card p {\n      font-size: 32px;\n      font-weight: 800;\n      color: #00f2fe;\n    }\n\n    .visual {\n      width: 700px;\n      height: 700px;\n      position: relative;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n\n    .grid-bg {\n      position: absolute;\n      width: 500px;\n      height: 500px;\n      border: 1px solid rgba(0, 242, 254, 0.1);\n      background:\n        linear-gradient(rgba(0, 242, 254, 0.05) 1px, transparent 1px),\n        linear-gradient(90deg, rgba(0, 242, 254, 0.05) 1px, transparent 1px);\n      background-size: 50px 50px;\n      transform: rotateX(60deg) rotateZ(-45deg);\n      box-shadow: 0 0 50px rgba(0, 242, 254, 0.1);\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n\n    .node {\n      position: absolute;\n      width: 20px;\n      height: 20px;\n      background-color: #00f2fe;\n      border-radius: 50%;\n      box-shadow: 0 0 25px #00f2fe;\n      animation: floatNode 6s infinite ease-in-out;\n    }\n\n    .node-2 {\n      width: 12px;\n      height: 12px;\n      background-color: #4facfe;\n      box-shadow: 0 0 15px #4facfe;\n      animation: floatNode2 8s infinite ease-in-out;\n    }\n\n    @keyframes floatNode {\n\n      0%,\n      100% {\n        transform: translateY(0px);\n      }\n\n      50% {\n        transform: translateY(-30px);\n        filter: brightness(1.5);\n      }\n    }\n\n    @keyframes floatNode2 {\n\n      0%,\n      100% {\n        transform: translate(50px, 50px);\n      }\n\n      50% {\n        transform: translate(70px, -20px);\n      }\n    }\n\n    .vector-lines {\n      position: absolute;\n      width: 400px;\n      height: 400px;\n      border-radius: 50%;\n      border: 1px solid rgba(0, 242, 254, 0.3);\n      animation: rotateCW 30s linear infinite;\n    }\n\n    .vector-lines::before {\n      content: '';\n      position: absolute;\n      top: 50%;\n      left: -10px;\n      width: 20px;\n      height: 20px;\n      background: #fff;\n      border-radius: 50%;\n      box-shadow: 0 0 20px #fff;\n    }\n\n    @keyframes rotateCW {\n      from {\n        transform: rotate(0deg);\n      }\n\n      to {\n        transform: rotate(360deg);\n      }\n    }\n\n  <\/style>\n<\/head>\n\n<body>\n  <div class=\"canvas\">\n    <div class=\"content\">\n      <div class=\"eyebrow\">System Strength Beta<\/div>\n      <h1 class=\"title\">THE MATRIX OF<br>INTELLIGENT RESILIENCE<\/h1>\n      <p class=\"description\">\n        Strength is more than mass. It is the precise optimization of resources, speed, and cognitive synthesis working\n        in perfect alignment.\n      <\/p>\n      <div class=\"metrics-grid\">\n        <div class=\"metric-card\">\n          <h3>Efficiency<\/h3>\n          <p>99.42%<\/p>\n        <\/div>\n        <div class=\"metric-card\">\n          <h3>Latency<\/h3>\n          <p>1.2 ms<\/p>\n        <\/div>\n      <\/div>\n    <\/div>\n    <div class=\"visual\">\n      <div class=\"grid-bg\"><\/div>\n      <div class=\"vector-lines\"><\/div>\n      <div class=\"node\"><\/div>\n      <div class=\"node-2\"><\/div>\n    <\/div>\n  <\/div>\n<script data-pptgen-autofit>(function () {\n  function fit() {\n    var body = document.body;\n    var root = body.children.length === 1 ? body.children[0] : body;\n    var w = Math.max(document.documentElement.scrollWidth, body.scrollWidth, root.scrollWidth);\n    var h = Math.max(document.documentElement.scrollHeight, body.scrollHeight, root.scrollHeight);\n    var s = Math.min(1920 / w, 1080 / h);\n    if (s < 0.999) {\n      root.style.transformOrigin = \"top center\";\n      root.style.transform = \"scale(\" + s + \")\";\n    }\n  }\n  if (document.readyState === \"complete\") setTimeout(fit, 60);\n  else window.addEventListener(\"load\", function () { setTimeout(fit, 60); });\n})();<\/script><\/body>\n\n<\/html>\n"];
+  var i = 0;
+  var frame = document.getElementById("frame");
+  var counter = document.getElementById("counter");
+  function layout() {
+    var w = window.innerWidth, h = window.innerHeight;
+    var s = Math.min(w / 1920, h / 1080);
+    frame.style.transform = "scale(" + s + ")";
+    frame.style.left = ((w - 1920 * s) / 2) + "px";
+    frame.style.top = ((h - 1080 * s) / 2) + "px";
+  }
+  window.addEventListener("resize", layout);
+  layout();
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    frame.srcdoc = slides[i];
+    counter.textContent = (i + 1) + " / " + slides.length;
+  }
+  document.getElementById("prev").onclick = function () { show(i - 1); };
+  document.getElementById("next").onclick = function () { show(i + 1); };
+  var fsBtn = document.getElementById("fs");
+  var docEl = document.documentElement;
+  if (!docEl.requestFullscreen && !docEl.webkitRequestFullscreen) {
+    fsBtn.style.display = "none"; // iOS Safari: no Fullscreen API; page already fills the screen
+  }
+  fsBtn.onclick = function () {
+    if (docEl.requestFullscreen) docEl.requestFullscreen();
+    else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+  };
+  function bindZone(el, dir) {
+    var sx = 0, sy = 0;
+    el.addEventListener("touchstart", function (e) {
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    }, { passive: true });
+    el.addEventListener("touchend", function (e) {
+      var dx = e.changedTouches[0].clientX - sx;
+      var dy = e.changedTouches[0].clientY - sy;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) show(i + (dx < 0 ? 1 : -1));
+      else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) show(i + dir);
+    }, { passive: true });
+  }
+  bindZone(document.getElementById("tapL"), -1);
+  bindZone(document.getElementById("tapR"), 1);
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); show(i + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(i - 1); }
+    else if (e.key === "f" || e.key === "F") { document.documentElement.requestFullscreen(); }
+  });
+  show(0);
+</script>
+</body>
+</html>
