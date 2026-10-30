@@ -106,6 +106,23 @@ after(async () => {
 
 // ── Negative cases: the walls must hold ─────────────────────────────
 
+test("an unauthenticated user cannot read a saved deck (401)", async () => {
+  const res = await api(`/api/ppt/${privateDeckId}`);
+  assert.equal(res.status, 401);
+});
+
+test("a stranger cannot read someone else's saved deck (403)", async () => {
+  const res = await api(`/api/ppt/${privateDeckId}`, { cookie: otherCookie });
+  assert.equal(res.status, 403);
+});
+
+test("the owner can read their own saved deck (200)", async () => {
+  const res = await api(`/api/ppt/${privateDeckId}`, { cookie: ownerCookie });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.deepEqual(body.slides, [SLIDE]);
+});
+
 test("unauthenticated save-ppt is rejected (401)", async () => {
   const res = await api("/api/save-ppt", {
     method: "POST",
