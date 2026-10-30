@@ -85,5 +85,17 @@
   });
   show(0);
 </script>
+<script>
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent || event.data?.type !== "airdeck:advance") return;
+    if (
+      typeof window.show !== "function" ||
+      typeof window.i !== "number" ||
+      !Array.isArray(window.slides) ||
+      window.slides.length < 2
+    ) return;
+    window.show((window.i + 1) % window.slides.length);
+  });
+</script>
 </body>
 </html>
