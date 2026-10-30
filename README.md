@@ -211,6 +211,35 @@ Implemented application capabilities include AI generation, schema validation, t
 
 The README describes implemented repository functionality; it does not imply that a production deployment, external OAuth setup, export storage, or every environment-specific configuration is already provisioned.
 
+## Roadmap
+
+The roadmap separates capabilities that already exist from the larger platform and architecture work still to be built.
+
+### Implemented
+
+- Theme Engine
+- Component Engine
+- Presentation Compiler
+- Sandbox Editor (currently part of the main application)
+- HTML, PDF, and PPTX export
+- Presentation saving and sharing
+- Website and project documentation
+
+### Planned
+
+1. **Sandbox Separation** — extract the existing code editor and preview/runtime into a separate repository with its own deployment lifecycle. Integrate it with the main application through a defined interface so the editor can be developed and released independently.
+2. **Animation Engine** — introduce a dedicated animation system for HTML slides. It should support element entrance, exit and emphasis effects, sequencing and timing, and slide transitions. Keep animation definitions declarative and separate from static component layout so the same presentation data can drive editor previews and browser playback.
+3. **Publish Platform** — evolve beyond private or direct share links into a public presentation community, similar in spirit to CodePen. Users should be able to publish presentations to public pages, build profiles or portfolios, discover work, embed presentations, and potentially remix or duplicate public decks.
+4. **Collaboration** — enable people to work on presentations together, taking inspiration from GitHub, Figma, and Canva. Potential capabilities include invitations and permissions, collaborative editing, live presence, comments, and version history.
+5. **Marketplace (scope to be defined)** — explore a marketplace for reusable presentation assets such as themes, components, templates, and animation packs. The exact scope, including whether complete presentations can be distributed or sold, is not decided yet.
+
+### Roadmap notes
+
+- PPTX export is an implemented capability, not an upcoming roadmap item. Support for translating browser-based animations into editable PowerPoint animations is a separate compatibility question and should not be assumed.
+- Sandbox Separation refers to moving the existing editor/runtime into a separately maintained and deployed repository; it does not mean that the current application has no Sandbox editor.
+- The Publish Platform is intended to be a public discovery and publishing experience, which is broader than the existing presentation-sharing functionality.
+- Marketplace remains exploratory until its purpose and business model are defined.
+
 ## Security notes
 
 - Keep `.env.local` and all credentials out of version control.
