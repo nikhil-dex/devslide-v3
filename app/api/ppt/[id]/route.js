@@ -6,20 +6,36 @@ import Ppts from "@/models/Ppts";
 import User from "@/models/User";
 import { rateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
-// Public by link: anyone with a deck's URL can view it (like an unlisted video).
+// Saved-deck reads are owner-only. Public viewing uses the unguessable
+// shareToken endpoint, which separately enforces password protection.
 export async function GET(req, { params }) {
   try {
-    const { id } = await params;
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return Response.json({ error: "Sign in to view this presentation." }, { status: 401 });
+    }
 
+    const { id } = await params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return Response.json({ error: "Presentation not found." }, { status: 404 });
     }
 
     await dbConnect();
 
-    const ppt = await Ppts.findById(id).select("titles ppt_History createdAt").lean();
+    const user = await User.findOne({ email: session.user.email }).select("_id");
+    if (!user) {
+      return Response.json({ error: "User not found." }, { status: 404 });
+    }
+
+    const ppt = await Ppts.findById(id)
+      .select("userid titles ppt_History createdAt")
+      .lean();
     if (!ppt) {
       return Response.json({ error: "Presentation not found." }, { status: 404 });
+    }
+
+    if (String(ppt.userid) !== String(user._id)) {
+      return Response.json({ error: "You can only view your own saved presentations." }, { status: 403 });
     }
 
     // Older documents stored slides wrapped in an extra array: [[slide, slide]]
@@ -28,16 +44,20 @@ export async function GET(req, { params }) {
       slides = slides[0];
     }
 
-    return Response.json({
-      id: String(ppt._id),
-      title: ppt.titles,
-      slides,
-      createdAt: ppt.createdAt,
-    });
-  } catch (error) {
     return Response.json(
-      { error: error.message || "Something went wrong." },
-      { status: 500 }
+      {
+        id: String(ppt._id),
+        title: ppt.titles,
+        slides,
+        createdAt: ppt.createdAt,
+      },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
+  } catch (error) {
+    console.error("Saved presentation read failed:", error);
+    return Response.json(
+      { error: "Could not load presentation." },
+      { status: 500, headers: { "Cache-Control": "no-store" } }
     );
   }
 }
