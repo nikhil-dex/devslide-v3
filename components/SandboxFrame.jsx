@@ -27,10 +27,27 @@ export default function SandboxFrame({
     className = "",
     title = "Sandbox",
     sandboxKey,
+    onConsoleMessage,
 }){
   const containerRef = useRef(null);
+  const iframeRef = useRef(null);
   const [layout, setLayout] = useState(null);
   
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      // Sandboxed srcDoc frames have an opaque origin ("null"), so validate
+      // the exact WindowProxy instead of trusting event.origin or message data.
+      if (event.source !== iframeRef.current?.contentWindow) return;
+
+      const payload = event.data;
+      if (payload?.type !== "log" || !Array.isArray(payload.data)) return;
+      onConsoleMessage?.(payload.data);
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [onConsoleMessage]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -58,6 +75,7 @@ export default function SandboxFrame({
     >
       {layout && layout.scale > 0 && (
         <iframe
+        ref={iframeRef}
         key={sandboxKey}
                   srcDoc={withConsoleBridge(html)}
           sandbox="allow-scripts"
