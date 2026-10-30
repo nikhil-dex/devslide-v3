@@ -5,6 +5,7 @@ import Navbar from "../../components/Header/navbar";
 import SlideFrame from "@/components/SlideFrame";
 import SandboxFrame from "@/components/SandboxFrame";
 import { BLANK_SLIDE } from "@/lib/blankSlide";
+import { readStoredSlides, readStoredValue, writeStoredValue } from "@/lib/sandboxStorage";
 import { byokHeaders, getByokKey } from "@/lib/byok";
 import Editor from "@monaco-editor/react";
 import beautify from "js-beautify";
@@ -59,23 +60,23 @@ export default function Sandbox() {
   // Filmstrip dock side — "left" (vertical) or "bottom" (horizontal, frees
   // width for code). Remembered across sessions.
   const [strip, setStrip] = useState(() =>
-    typeof window === "undefined" ? "left" : localStorage.getItem("pptStripPos") || "left"
+    typeof window === "undefined" ? "left" : readStoredValue("pptStripPos", "left")
   );
   const lastWidthRef = useRef(45);
 
   const setStripPos = (pos) => {
     setStrip(pos);
-    localStorage.setItem("pptStripPos", pos);
+    writeStoredValue("pptStripPos", pos);
   };
 
   // Slides are handed over from the generator via localStorage.
   const [code, setCode] = useState(() => {
     if (typeof window === "undefined") return [];
-    const pages = JSON.parse(localStorage.getItem("pptPages")) || [];
+    const pages = readStoredSlides(() => window.localStorage.getItem("pptPages"));
     return pages.map((page) => beautify.html(page, BEAUTIFY_OPTIONS));
   });
   const [deckTitle] = useState(() =>
-    typeof window === "undefined" ? "" : localStorage.getItem("pptEditingTitle") || ""
+    typeof window === "undefined" ? "" : readStoredValue("pptEditingTitle", "")
   );
 
   // Preview mirrors `code`, debounced while typing so the slide's animations
@@ -100,7 +101,7 @@ export default function Sandbox() {
 
   const flushSave = () => {
     clearTimeout(saveTimer.current);
-    localStorage.setItem("pptPages", JSON.stringify(codeRef.current));
+    writeStoredValue("pptPages", JSON.stringify(codeRef.current));
     setSaveStatus("saved");
   };
   useEffect(() => {
