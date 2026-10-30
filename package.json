@@ -17,7 +17,7 @@
     "test:storage": "node --import ./tests/register-loader.mjs --test tests/export-storage.test.mjs",
     "test:sandbox": "node --test tests/sandbox.test.mjs",
     "test:csp": "node --test tests/csp.test.mjs",
-    "test:security": "node --import ./tests/register-loader.mjs --experimental-test-module-mocks --test tests/csp.test.mjs tests/public-password.test.mjs tests/network-security.test.mjs tests/sandbox-messages.test.mjs tests/gemini-security.test.mjs"
+    "test:security": "node --import ./tests/register-loader.mjs --experimental-test-module-mocks --test tests/csp.test.mjs tests/public-deck-access.test.mjs tests/network-security.test.mjs tests/sandbox-messages.test.mjs tests/gemini-security.test.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.8.0-rc.2",
