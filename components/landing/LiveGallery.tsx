@@ -7,9 +7,8 @@ import Reveal from "./Reveal";
 import { GALLERY_DECKS, type GalleryDeck } from "./landing-data";
 
 // Live Gallery — the wall shows REAL exported AIRDeck presentations running
-// in iframes, not screenshots. The exports are served same-origin from
-// /public/gallery and expose the viewer's global show(n)/i API, so the wall
-// can auto-advance multi-slide decks while their internal animations play.
+// in iframes, not screenshots. Static exports are embedded in opaque-origin
+// sandboxes; the wall advances them through a narrowly scoped postMessage API.
 //
 // Interaction model: on the wall, a transparent overlay captures hover/click
 // (keeping the marquee at 60fps and opening the modal); inside the modal the
@@ -249,7 +248,7 @@ export default function LiveGallery() {
                 <iframe
                   src={openDeck.src}
                   title={openDeck.title}
-                  sandbox="allow-scripts allow-same-origin"
+                  sandbox="allow-scripts"
                   className="w-full h-full border-0"
                   allow="fullscreen"
                   allowFullScreen
