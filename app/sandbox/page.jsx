@@ -73,7 +73,9 @@ export default function Sandbox() {
   const [code, setCode] = useState(() => {
     if (typeof window === "undefined") return [];
     const pages = readStoredSlides(() => window.localStorage.getItem("pptPages"));
-    return pages.map((page) => beautify.html(page, BEAUTIFY_OPTIONS));
+    return pages.length
+      ? pages.map((page) => beautify.html(page, BEAUTIFY_OPTIONS))
+      : [BLANK_SLIDE];
   });
   const [deckTitle] = useState(() =>
     typeof window === "undefined" ? "" : readStoredValue("pptEditingTitle", "")
