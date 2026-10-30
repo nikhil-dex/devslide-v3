@@ -123,6 +123,13 @@ test("the owner can read their own saved deck (200)", async () => {
   assert.deepEqual(body.slides, [SLIDE]);
 });
 
+test("a recipient can read a deck shared with them (200)", async () => {
+  const res = await api(`/api/ppt/${sharedDeckId}`, { cookie: otherCookie });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.deepEqual(body.slides, [SLIDE]);
+});
+
 test("unauthenticated save-ppt is rejected (401)", async () => {
   const res = await api("/api/save-ppt", {
     method: "POST",
