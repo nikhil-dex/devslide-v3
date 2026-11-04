@@ -585,7 +585,14 @@ export default function Sandbox() {
             value={code[point]}
             onChange={updateCode}
             theme="vs-dark"
-            options={{ automaticLayout: true, minimap: { enabled: false }, fontSize: 13 }}
+            options={{
+              automaticLayout: true,
+              minimap: { enabled: false },
+              fontSize: 13,
+              folding: false,
+              wordWrap: "on",
+              scrollBeyondLastLine: false,
+            }}
           />
 
           
