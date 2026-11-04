@@ -590,8 +590,14 @@ export default function Sandbox() {
               minimap: { enabled: false },
               fontSize: 13,
               folding: false,
-              wordWrap: "on",
+              wordWrap: "off",
               scrollBeyondLastLine: false,
+              // Avoid GPU-accelerated glyph positioning glitches in Chromium.
+              experimentalGpuAcceleration: "off",
+              disableLayerHinting: true,
+              fontLigatures: false,
+              lineHeight: 20,
+              renderWhitespace: "none",
             }}
           />
 
