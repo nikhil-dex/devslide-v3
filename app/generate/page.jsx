@@ -5,7 +5,9 @@ import { useEffect, useRef, useState } from "react"
 import Navbar from "@/components/Header/navbar";
 import AuroraBackground from "@/components/AuroraBackground";
 import { BLANK_SLIDE } from "@/lib/blankSlide";
-import { byokHeaders, getByokKey } from "@/lib/byok";
+import { byokHeaders } from "@/lib/byok";
+import { useAiSelection } from "@/lib/useAiSelection";
+import AiModelSelector from "@/components/AiModelSelector";
 import { PenLine } from "lucide-react";
 import { Save } from "lucide-react";
 import Link from "next/link";
@@ -24,13 +26,19 @@ export default function Home() {
   const [hasSavedDeck] = useState(() =>
     typeof window !== "undefined" && Boolean(localStorage.getItem("pptPages"))
   );
-  const [hasByok] = useState(() => Boolean(getByokKey()));
+  const { selection, setSelection, hasByok, noCredits } = useAiSelection();
+  const requestRef = useRef(null);
 
   const credit = creditLeft ?? session?.user?.credit ?? 0;
 
   useEffect(() => {
     if (status === "unauthenticated") router.push('/signin');
   }, [status, router]);
+
+  useEffect(() => () => {
+    clearInterval(timerRef.current);
+    requestRef.current?.abort();
+  }, []);
 
   if (status !== "authenticated") {
     return (
@@ -71,7 +79,9 @@ const startBlankDeck = () => {
 };
 
 const sendRequest = async () => {
-  console.log("Sending request with prompt:", prompt);
+  if (loading || !prompt.trim()) return;
+  const controller = new AbortController();
+  requestRef.current = controller;
   setLoading(true);
   setResponse("");
 
@@ -85,8 +95,9 @@ const sendRequest = async () => {
   try {
     const res = await fetch("/api/generate-ppt", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...byokHeaders() },
-      body: JSON.stringify({ prompt }),
+      headers: { "Content-Type": "application/json", ...byokHeaders(selection.provider) },
+      body: JSON.stringify({ prompt, ...selection }),
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(75_000)]),
     });
 
     const data = await res.json();
@@ -112,12 +123,13 @@ const sendRequest = async () => {
     localStorage.removeItem("pptEditingTitle");
     // router.push("/code-ide");
     router.push("/sandbox");
-    console.log("Received pages:", data.result);
   } catch (err) {
-    setResponse(`❌ Network error: ${err?.message || "Request failed"} (after ${took()})`);
+    setResponse(controller.signal.aborted ? "Generation cancelled."
+      : `Error: ${err?.name === "TimeoutError" ? "The request took too long. Try another model." : err?.message || "Request failed"} (after ${took()})`);
   } finally {
     clearInterval(timerRef.current);
     setLoading(false);
+    requestRef.current = null;
   }
 };
 
@@ -143,9 +155,9 @@ const sendRequest = async () => {
             <label className="block text-sm font-semibold text-gray-200">
               Describe your presentation
             </label>
-            {hasByok ? (
-              <span className="text-sm font-semibold px-3 py-1 rounded-full border border-[#5eadff]/30 text-[#5eadff] bg-[#5eadff]/5" title="Using your own Gemini API key — no credits used">
-                Your own API key — free
+            {noCredits ? (
+              <span className="text-sm font-semibold px-3 py-1 rounded-full border border-[#5eadff]/30 text-[#5eadff] bg-[#5eadff]/5">
+                {hasByok ? "Your key · No app credits" : "Groq · No app credits"}
               </span>
             ) : (
               <span className={`text-sm font-semibold px-3 py-1 rounded-full border ${credit > 0 ? "border-[#b3ffc8]/30 text-[#b3ffc8] bg-[#b3ffc8]/5" : "border-red-400/30 text-red-400 bg-red-400/5"}`}>
@@ -153,13 +165,19 @@ const sendRequest = async () => {
               </span>
             )}
           </div>
+          <div className="relative">
           <textarea
-            className="w-full p-4 bg-white/5 border border-white/10 rounded-xl focus:border-[#5eadff] focus:ring-1 focus:ring-[#5eadff]/50 text-gray-100 transition-all outline-none resize-none"
+            className="block w-full p-4 pb-14 bg-white/5 border border-white/10 rounded-xl focus:border-[#5eadff] focus:ring-1 focus:ring-[#5eadff]/50 text-gray-100 transition-all outline-none resize-none"
             rows="8"
             onChange={(e) => setPrompt(e.target.value)}
             value={prompt}
             placeholder="Example: Create a presentation about climate change with 5 slides covering causes, effects, and solutions..."
           />
+
+          <div className="absolute bottom-3 right-3 max-w-[calc(100%-1.5rem)]">
+            <AiModelSelector value={selection} onChange={setSelection} disabled={loading} />
+          </div>
+          </div>
 
           <button
             onClick={sendRequest}
@@ -177,10 +195,13 @@ const sendRequest = async () => {
             ) : (
               <>
                 <Save className="w-5 h-5" />
-                <span>Generate Presentation {hasByok ? "(your key)" : "(1 credit)"}</span>
+                <span>Generate Presentation {noCredits ? "(no credits)" : "(1 credit)"}</span>
               </>
             )}
           </button>
+
+          {loading && <button type="button" onClick={() => requestRef.current?.abort()}
+            className="mt-3 w-full text-sm text-gray-300 underline">Cancel generation</button>}
 
           {loading && (
             <p className="mt-3 text-sm text-center text-gray-500">

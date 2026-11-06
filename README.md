@@ -122,7 +122,7 @@ public/                    # Static assets
 - npm
 - MongoDB
 - Google and/or GitHub OAuth credentials for sign-in
-- A Gemini API key for server-managed AI generation, unless users supply their own key through BYOK
+- A Gemini or Groq API key for server-managed AI generation, unless users supply their own provider key through BYOK
 
 ### 1. Clone the repository
 
@@ -157,7 +157,9 @@ GITHUB_CLIENT_SECRET=
 
 # Gemini (optional when users provide their own key)
 GEMINI_API_KEY=
-GEMINI_MODEL=
+
+# Groq (optional when users provide their own key)
+GROQ_API_KEY=
 
 # Export artifact storage (required for hosted export downloads)
 EXPORTS_BLOB_READ_WRITE_TOKEN=
@@ -174,6 +176,14 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### Choosing an AI provider and model
+
+The generation input and AI slide editors include provider and model selectors. The selection persists in this browser. Gemini defaults to Gemini 3.6 Flash; Groq offers GPT-OSS 20B and GPT-OSS 120B. An explicitly selected model is used without silently falling back to another model.
+
+Configure `GROQ_API_KEY` on the server, or add a Groq key in Profile. Gemini and Groq keys are stored separately, and only the selected provider's key is sent with a request. Profile keys are saved in browser local storage and sent through the app server to the selected provider.
+
+Groq requests use no app credits. Groq's [free tier has usage limits](https://console.groq.com/docs/rate-limits); provider charges depend on the account associated with the key. Server-managed Gemini requests use one app credit; Gemini BYOK requests use none. Missing keys are rejected before charging credits, and failed generation refunds reserved credits. AI requests have a 60-second provider deadline; generation can also be cancelled from the input screen.
+
 ## Useful scripts
 
 | Command | Purpose |
@@ -183,6 +193,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run start` | Start the production server |
 | `npm run lint` | Run ESLint |
 | `npm run test:deck` | Run deck schema and compiler tests |
+| `npm run test:ai` | Run provider selection, key isolation, and AI route tests without live API calls |
 | `npm run test:api` | Run API ownership tests |
 | `npm run test:pdf` | Run PDF export tests |
 | `npm run test:pdf:route` | Run PDF export route tests |

@@ -5,6 +5,7 @@ import User from "@/models/User";
 import { reserveCredit, refundCredit } from "@/lib/credits";
 import { llmComplete } from "@/lib/llm";
 import { toErrorMessage } from "@/lib/gemini";
+import { getAiRequestOptions } from "@/lib/aiRequest";
 import { rateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 const MAX_SLIDE_LENGTH = 200_000;
@@ -36,7 +37,8 @@ export async function POST(req) {
     const rl = rateLimit(`ai-edit:${session.user.email}`, { limit: 20 });
     if (!rl.ok) return rateLimitResponse(rl.retryAfterSeconds);
 
-    const { slideHtml, instruction } = await req.json();
+    const body = await req.json();
+    const { slideHtml, instruction } = body;
 
     if (typeof slideHtml !== "string" || !slideHtml.trim() || slideHtml.length > MAX_SLIDE_LENGTH) {
       return Response.json({ error: "Invalid slide data." }, { status: 400 });
@@ -49,14 +51,12 @@ export async function POST(req) {
       );
     }
 
+    const ai = getAiRequestOptions(req, body);
+    const { usingByok, chargeCredits } = ai;
     await dbConnect();
 
-    // BYOK: with the user's own Gemini key, no credits are touched.
-    const userKey = req.headers.get("x-gemini-key")?.trim() || "";
-    const usingByok = Boolean(userKey);
-
     let user;
-    if (usingByok) {
+    if (!chargeCredits) {
       user = await User.findOne({ email: session.user.email }).select("_id");
       if (!user) {
         return Response.json({ error: "User not found." }, { status: 404 });
@@ -75,7 +75,7 @@ export async function POST(req) {
       }
     }
 
-    const refund = () => (usingByok ? null : refundCredit(user._id));
+    const refund = () => (chargeCredits ? refundCredit(user._id) : null);
 
     const prompt = `You are editing ONE slide of an HTML presentation.
 
@@ -94,9 +94,7 @@ Rules:
 
     let text, blockReason;
     try {
-      ({ text, blockReason } = await llmComplete(prompt, {
-        apiKey: userKey || undefined,
-      }));
+      ({ text, blockReason } = await llmComplete(prompt, ai));
     } catch (err) {
       await refund();
       throw err;
@@ -120,13 +118,15 @@ Rules:
 
     return Response.json({
       result: html,
-      credit: usingByok ? null : user.credit,
+      credit: chargeCredits ? user.credit : null,
       byok: usingByok,
+      provider: ai.provider,
+      model: ai.model,
     });
   } catch (error) {
     return Response.json(
       { error: toErrorMessage(error) },
-      { status: 500 }
+      { status: error?.status || 500 }
     );
   }
 }

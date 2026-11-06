@@ -5,6 +5,7 @@ import User from "@/models/User";
 import { reserveCredit, refundCredit } from "@/lib/credits";
 import { llmComplete } from "@/lib/llm";
 import { toErrorMessage } from "@/lib/gemini";
+import { getAiRequestOptions } from "@/lib/aiRequest";
 import { rateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { compileDeck } from "@/deck/compile.js";
 import { THEME_LIST } from "@/deck/themes";
@@ -456,19 +457,18 @@ export async function POST(req) {
     const rl = rateLimit(`generate:${session.user.email}`, { limit: 10 });
     if (!rl.ok) return rateLimitResponse(rl.retryAfterSeconds);
 
-    const { prompt } = await req.json();
+    const body = await req.json();
+    const { prompt } = body;
     if (typeof prompt !== "string" || !prompt.trim()) {
       return Response.json({ error: "Prompt is required." }, { status: 400 });
     }
 
+    const ai = getAiRequestOptions(req, body);
+    const { usingByok, chargeCredits } = ai;
     await dbConnect();
 
-    // BYOK: with the user's own Gemini key, no credits are touched.
-    const userKey = req.headers.get("x-gemini-key")?.trim() || "";
-    const usingByok = Boolean(userKey);
-
     let user;
-    if (usingByok) {
+    if (!chargeCredits) {
       user = await User.findOne({ email: session.user.email }).select("_id");
       if (!user) {
         return Response.json({ error: "User not found." }, { status: 404 });
@@ -487,23 +487,13 @@ export async function POST(req) {
       }
     }
 
-    const refund = () => (usingByok ? null : refundCredit(user._id));
+    const refund = () => (chargeCredits ? refundCredit(user._id) : null);
 
     // TEMPORARY migration logging — remove/reduce after Phase 2 stabilizes.
     console.log("[deck-engine] generating deck source", {
       promptLength: prompt.trim().length,
       byok: usingByok,
     });
-
-    // let text, blockReason;
-    // try {
-    //   ({ text, blockReason } = await llmComplete(buildDeckPrompt(prompt), {
-    //     apiKey: userKey || undefined,
-    //   }));
-    // } catch (err) {
-    //   await refund();
-    //   throw err;
-    // }
 
     //added for time mesure
     const fullPrompt = buildDeckPrompt(prompt);
@@ -518,7 +508,8 @@ console.time("[deck-engine] gemini");
 let text, blockReason;
 try {
   ({ text, blockReason } = await llmComplete(fullPrompt, {
-    apiKey: userKey || undefined,
+    ...ai,
+    json: true,
   }));
 } catch (err) {
   await refund();
@@ -588,8 +579,10 @@ try {
     return Response.json({
       result: compiled.slides,
       source,
-      credit: usingByok ? null : user.credit,
+      credit: chargeCredits ? user.credit : null,
       byok: usingByok,
+      provider: ai.provider,
+      model: ai.model,
     });
   } catch (error) {
   console.error("FULL ERROR:");
@@ -598,12 +591,9 @@ try {
 
   return Response.json(
     {
-      error: error?.message,
-      stack: process.env.NODE_ENV === "development"
-        ? error?.stack
-        : undefined,
+      error: toErrorMessage(error),
     },
-    { status: 500 }
+    { status: error?.status || 500 }
   );
 }
 }

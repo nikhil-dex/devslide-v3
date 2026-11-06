@@ -4,7 +4,9 @@ import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Navbar from "../../components/Header/navbar";
 import SlideFrame from "@/components/SlideFrame";
 import { BLANK_SLIDE } from "@/lib/blankSlide";
-import { byokHeaders, getByokKey } from "@/lib/byok";
+import { byokHeaders } from "@/lib/byok";
+import { useAiSelection } from "@/lib/useAiSelection";
+import AiModelSelector from "@/components/AiModelSelector";
 import Editor from "@monaco-editor/react";
 import beautify from "js-beautify";
 import { useRouter } from "next/navigation";
@@ -82,7 +84,7 @@ export default function CodeIDE() {
   const [aiError, setAiError] = useState("");
   const [aiNotice, setAiNotice] = useState("");
   const [aiBackup, setAiBackup] = useState(null); // { index, html } — pre-AI version of the last edited slide
-  const [hasByok] = useState(() => typeof window !== "undefined" && Boolean(getByokKey()));
+  const { selection, setSelection, noCredits } = useAiSelection();
   const codeRef = useRef(code);
   const previewTimer = useRef(null);
   const saveTimer = useRef(null);
@@ -171,8 +173,9 @@ export default function CodeIDE() {
     try {
       const res = await fetch("/api/edit-slide", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...byokHeaders() },
-        body: JSON.stringify({ slideHtml: codeRef.current[point], instruction }),
+        headers: { "Content-Type": "application/json", ...byokHeaders(selection.provider) },
+        body: JSON.stringify({ slideHtml: codeRef.current[point], instruction, ...selection }),
+        signal: AbortSignal.timeout(75_000),
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -380,7 +383,7 @@ export default function CodeIDE() {
                 ? "bg-[#5eadff]/20 border-[#5eadff]/40 text-[#5eadff]"
                 : "bg-white/5 hover:bg-white/10 border-white/10 text-[#5eadff]"
             }`}
-            title="Edit this slide with AI (1 credit)"
+            title={noCredits ? "Edit this slide with AI (no credits)" : "Edit this slide with AI (1 credit)"}
           >
             <Sparkles className="w-4 h-4" />
           </button>
@@ -413,7 +416,10 @@ export default function CodeIDE() {
 
       {/* ── AI edit bar ── */}
       {aiOpen && (
-        <div className="shrink-0 px-4 py-2.5 bg-[#5eadff]/5 border-b border-[#5eadff]/20 flex items-center gap-3 z-40">
+        <div className="shrink-0 px-4 py-2.5 bg-[#5eadff]/5 border-b border-[#5eadff]/20 flex flex-wrap items-center gap-3 z-40">
+          <div className="order-last ml-auto">
+            <AiModelSelector value={selection} onChange={setSelection} disabled={aiBusy} />
+          </div>
           <Sparkles className="w-4 h-4 text-[#5eadff] shrink-0" />
           <input
             type="text"
@@ -437,7 +443,7 @@ export default function CodeIDE() {
             {aiBusy ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Working...</>
             ) : (
-              <>Apply {hasByok ? "(your key)" : "(1 credit)"}</>
+              <>Apply {noCredits ? "(no credits)" : "(1 credit)"}</>
             )}
           </button>
           {aiBackup && !aiBusy && (

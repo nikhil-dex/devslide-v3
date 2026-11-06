@@ -5,6 +5,7 @@
 //   npm run test:pdf
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createServer } from "node:http";
 import { compileDeck } from "../deck/compile.js";
 import { COMPONENT_LIST } from "../deck/components/index.js";
 import {
@@ -170,11 +171,23 @@ test("a broken image does not fail the export", async () => {
   assertPageGeometry(pdf, 2);
 });
 
-test("an image pointing at a private address is blocked but still exports", async () => {
-  const slides = compile("linear", [
-    { component: "image", props: { title: "SSRF attempt", image: "http://127.0.0.1:9/secret.png" } },
-  ]);
-  assertPageGeometry(parsePdf(await renderDeckToPdf(slides, FAST)), 1);
+test("private HTTP and WebSocket resources never reach a listening server", async () => {
+  let connections = 0;
+  const server = createServer((_req, res) => res.end("private data"));
+  server.on("connection", () => { connections++; });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  try {
+    const { port } = server.address();
+    const slide = `<!DOCTYPE html><html><body><h1>Safe export</h1>
+      <img src="http://127.0.0.1:${port}/secret.png">
+      <script>new WebSocket("ws://127.0.0.1:${port}/socket");</script>
+      </body></html>`;
+    assertPageGeometry(parsePdf(await renderDeckToPdf([slide], FAST)), 1);
+    assert.equal(connections, 0, "no private TCP connection should be opened");
+  } finally {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  }
 });
 
 test("animated slides reach a deterministic state and export identically", async () => {

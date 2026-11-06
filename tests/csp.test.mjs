@@ -26,9 +26,20 @@ test("sandbox policy permits inline slide scripts only on the isolated editor ro
   const policy = buildCsp({ isSandbox: true });
   assert.match(directive(policy, "script-src"), /'unsafe-inline'/);
   assert.match(directive(policy, "script-src"), /'unsafe-eval'/);
-  assert.doesNotMatch(directive(policy, "script-src"), /https:/);
+  assert.deepEqual(directive(policy, "script-src").split(" ").slice(1), [
+    "'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'", "'unsafe-eval'", "blob:",
+  ]);
   assert.equal(directive(policy, "base-uri"), "base-uri 'none'");
   assert.equal(directive(policy, "form-action"), "form-action 'none'");
+});
+
+test("editor styles load on direct visits and after client-side navigation", () => {
+  for (const options of [{ isSandbox: true }, { nonce: "entry-page" }]) {
+    assert.equal(
+      directive(buildCsp(options), "style-src"),
+      "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/editor/editor.main.css",
+    );
+  }
 });
 
 test("non-sandbox policy rejects a missing nonce", () => {
