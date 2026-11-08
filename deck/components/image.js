@@ -18,6 +18,7 @@ const PROPS = {
   image: { required: true, type: "string (URL)", description: "Absolute URL of the image to display." },
   title: { required: false, type: "string", description: "Heading shown above the image." },
   caption: { required: false, type: "string", description: "Short caption shown beneath the image." },
+  fit: { required: false, type: "string", description: "Image fit: cover (default) or contain (for diagrams)." },
 };
 
 // Authoring metadata. Same shape as a theme's `ai` block so docs, tooling and
@@ -70,7 +71,10 @@ const css = `
     background: var(--deck-accent, #6e7681);
   }
   .image-frame {
-    flex: 1;
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -81,10 +85,14 @@ const css = `
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
   }
   .image-frame img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
     display: block;
+  }
+  .image-frame[data-image-fit="contain"] img {
+    object-fit: contain;
   }
   .image-caption {
     margin-top: 28px;
@@ -99,21 +107,24 @@ const css = `
 function render(props) {
   const title =
     props.title !== undefined && String(props.title).trim() !== ""
-      ? `<h1 class="image-title">${props.title}</h1>
+      ? `<h1 class="image-title" data-motion-target="title">${props.title}</h1>
 <div class="image-rule"></div>`
       : "";
 
   const caption =
     props.caption !== undefined && String(props.caption).trim() !== ""
-      ? `<div class="image-caption">${props.caption}</div>`
+      ? `<div class="image-caption" data-motion-target="caption">${props.caption}</div>`
       : "";
 
-  return `<section class="image-slide">
+  const fit = props.fit === "contain" ? "contain" : "cover";
+
+  return `<section class="image-slide" data-motion-root data-component="image">
 
 ${title}
 
-<div class="image-frame">
+<div class="image-frame" data-image-fit="${fit}" data-motion-target="image-frame">
   <img
+    data-motion-target="image"
     src="${props.image}"
     alt="${props.caption || props.title || "Presentation Image"}"
   />
