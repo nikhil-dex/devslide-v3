@@ -18,6 +18,7 @@ import { requiredText } from "./validators.js";
 const PROPS = {
   title: { required: true, type: "string", description: "The headline. Short and punchy — it renders at 120px." },
   subtitle: { required: false, type: "string", description: "One supporting sentence, shown under the accent rule." },
+  image: { required: false, type: "string (URL)", description: "Optional photographic background URL." },
 };
 
 // Authoring metadata. Same shape as a theme's `ai` block so docs, tooling and
@@ -55,6 +56,11 @@ const css = `
     background: var(--deck-bg, #101014);
     font-family: var(--deck-font-body, "Helvetica Neue", Helvetica, Arial, sans-serif);
   }
+  .hero[data-has-image="true"] { position: relative; isolation: isolate; background: #111; }
+  .hero-background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+  .hero-overlay { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(0,0,0,.84), rgba(0,0,0,.42)), linear-gradient(0deg,rgba(0,0,0,.5),transparent); }
+  .hero[data-has-image="true"] h1 { color: #fff; text-shadow: 0 3px 24px rgba(0,0,0,.35); }
+  .hero[data-has-image="true"] p { color: #f0f0f0; }
   .hero h1 {
     margin: 0;
     max-width: 1500px;
@@ -90,9 +96,11 @@ function render(props) {
       ? `\n<p>${props.subtitle}</p>`
       : "";
 
-  return `<section class="hero">
-<h1>${props.title}</h1>
-<div class="hero-rule"></div>${subtitle}
+  const background = props.image ? `<img class="hero-background" data-motion-target="background" src="${props.image}" alt="" /><div class="hero-overlay" data-motion-target="overlay"></div>` : "";
+  return `<section class="hero" data-component="hero" data-motion-root data-has-image="${props.image ? "true" : "false"}">
+${background}
+<h1 data-motion-target="title">${props.title}</h1>
+<div class="hero-rule" data-motion-target="divider"></div>${subtitle}
 </section>`;
 }
 
