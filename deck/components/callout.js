@@ -50,21 +50,25 @@ const css = `
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 100px;
+    padding: clamp(56px, 5.2vw, 100px);
     background: var(--deck-bg, #101014);
     font-family: var(--deck-font-body, "Helvetica Neue", Helvetica, Arial, sans-serif);
   }
   .callout-card {
     width: 1320px;
     max-width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    isolation: isolate;
+    transform-style: preserve-3d;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 80px;
-    border-radius: 34px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+    padding: clamp(48px, 4.2vw, 80px);
+    border-radius: 28px;
+    background: var(--deck-surface, rgba(255, 255, 255, 0.045));
+    border: 1px solid var(--deck-border, rgba(255, 255, 255, 0.12));
+    box-shadow: 0 20px 64px rgba(0, 0, 0, 0.16);
     text-align: center;
   }
   .callout-card::before {
@@ -91,7 +95,7 @@ const css = `
   .callout-title {
     margin: 0;
     font-family: var(--deck-font-display, "Helvetica Neue", Helvetica, Arial, sans-serif);
-    font-size: 74px;
+    font-size: clamp(52px, 3.85vw, 74px);
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -108,7 +112,7 @@ const css = `
   .callout-body {
     max-width: 1040px;
     margin: 0;
-    font-size: 40px;
+    font-size: clamp(28px, 2.1vw, 40px);
     line-height: 1.55;
     font-weight: 400;
     color: var(--deck-muted, #9aa0aa);
@@ -122,21 +126,21 @@ function render(props) {
       ? props.icon
       : "●";
 
-  return `<section class="callout">
+  return `<section class="callout" data-component="callout" data-motion-root>
 
-<div class="callout-card">
+<div class="callout-card" data-motion-target="card">
 
-<div class="callout-icon">
+<div class="callout-icon" data-motion-target="icon">
 ${icon}
 </div>
 
-<h1 class="callout-title">
+<h1 class="callout-title" data-motion-target="title">
 ${props.title}
 </h1>
 
-<div class="callout-rule"></div>
+<div class="callout-rule" data-motion-target="divider"></div>
 
-<p class="callout-body">
+<p class="callout-body" data-motion-target="body">
 ${props.body}
 </p>
 
