@@ -132,6 +132,7 @@ Use for:
 Props:
 title: string (required)
 subtitle: string (optional)
+image: string (optional; short descriptive Unsplash photo search phrase for a background, not a URL)
 
 2. Comparison
 
@@ -370,7 +371,8 @@ Component Selection Rules
 7. Use Table for structured tabular data.
 8. Use Steps for workflows and ordered processes.
 9. Use Quote when emphasizing a single memorable statement.
-10. Use Image whenever visual content communicates better than text. For image slides, put a concise descriptive Unsplash search phrase in the required "image" prop, NOT a fabricated URL. The server resolves this phrase into a real photograph. Prefer photographs for visual storytelling; do not use image slides for technical diagrams, charts or screenshots that require exact factual content.
+10. For visually rich presentations, optionally add an "image" search phrase to Hero slides to use a photographic background. Do not add it to components that do not document an image prop.
+11. Use Image whenever visual content communicates better than text. For image slides, put a concise descriptive Unsplash search phrase in the required "image" prop, NOT a fabricated URL. The server resolves this phrase into a real photograph. Prefer photographs for visual storytelling; do not use image slides for technical diagrams, charts or screenshots that require exact factual content.
 11. Every slide should use the component that best matches its primary purpose.
 
 Keep titles concise.
