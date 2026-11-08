@@ -8,6 +8,7 @@ import { toErrorMessage } from "@/lib/gemini";
 import { getAiRequestOptions } from "@/lib/aiRequest";
 import { rateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { compileDeck } from "@/deck/compile.js";
+import { enrichDeckImages } from "@/lib/images/enrichDeck.js";
 import { THEME_LIST } from "@/deck/themes";
 
 // ── Deck engine (primary path) ──────────────────────────────────────
@@ -369,7 +370,7 @@ Component Selection Rules
 7. Use Table for structured tabular data.
 8. Use Steps for workflows and ordered processes.
 9. Use Quote when emphasizing a single memorable statement.
-10. Use Image whenever visual content communicates better than text.
+10. Use Image whenever visual content communicates better than text. For image slides, put a concise descriptive Unsplash search phrase in the required "image" prop, NOT a fabricated URL. The server resolves this phrase into a real photograph. Prefer photographs for visual storytelling; do not use image slides for technical diagrams, charts or screenshots that require exact factual content.
 11. Every slide should use the component that best matches its primary purpose.
 
 Keep titles concise.
@@ -554,6 +555,8 @@ try {
       source.version = 1;
     }
 
+
+    source = await enrichDeckImages(source);
 
     console.time("[deck-engine] compile");
     const compiled = compileDeck(source);
